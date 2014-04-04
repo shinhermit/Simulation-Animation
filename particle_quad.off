@@ -1,0 +1,12 @@
+# Triangle au format OFF, double faces
+OFF
+3 2 6
+
+# Sommets
+0 0.559 0
+-0.5 -0.559 0
+0.5 -0.559 0
+
+# Faces
+3 0 1 2
+3 0 2 1

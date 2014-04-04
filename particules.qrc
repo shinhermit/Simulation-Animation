@@ -1,0 +1,14 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource>
+    <file>sphere.off</file>
+  </qresource>
+
+  <qresource>
+    <file>particle_quad.off</file>
+  </qresource>
+
+  <qresource>
+    <file>particules.c</file>
+  </qresource>
+</RCC>
