@@ -147,9 +147,9 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
 
     //calcul de l'accélération et de la vitesse
     gravity << 0 << 0 << -9.8;
-    acc << gravity[0] - (gradP[0] + coeff_mu*laplV[0])/this->getDensity()
-        << gravity[1] - (gradP[1] + coeff_mu*laplV[1])/this->getDensity()
-        << gravity[2] - (gradP[2] + coeff_mu*laplV[2])/this->getDensity();
+    acc << gravity[0] + (-gradP[0] + coeff_mu*laplV[0])/this->getDensity()
+        << gravity[1] + (-gradP[1] + coeff_mu*laplV[1])/this->getDensity()
+        << gravity[2] + (-gradP[2] + coeff_mu*laplV[2])/this->getDensity();
 
     ++ this->cstep;
 
