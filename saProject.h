@@ -103,6 +103,13 @@ private:
   // 6 valeurs contigues <px,py,pz,vx,vy,vz>
   QCLVector<float> openClInput;
 
+
+  void _createParticles(unsigned int nbItems, int debug);
+  void _setSimulator(saViewer *viewer, int debug);
+  void _configOpenCL(bool gpuMode, unsigned int nbItems);
+
+  void _createGUI(saViewer *viewer);
+
 private slots:
   /// Slot : lit une nouvelle mesh dans un fichier.
   void Open();

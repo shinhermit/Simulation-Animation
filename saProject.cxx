@@ -59,40 +59,34 @@ saProject::saProject(QString title, QSize size, int debug, bool gpuMode)
 {
     this->Trace("-> saProject()");
     this->setWindowTitle(title);
+
     saViewer *viewer = new saViewer();
-    viewer->setFixedSize(size);
-    //  viewer->setAxisIsDrawn();
+//    viewer->setFixedSize(size);
+//    viewer->setAxisIsDrawn();
     viewer->show();
-    wlSimulationEnvironment *env = new wlGround(debug);
-    wlAnimatedMesh * ball;
 
-    //********** config OpencCL  *********
-    this->gpuMode = gpuMode;
     unsigned int nbItems = 20;
-    unsigned int kinSize = 6*nbItems; //OpenCL: taille du tableau des valeurs cinématiques
+    _configOpenCL(gpuMode, nbItems);
+    _createParticles(nbItems, debug);
+    _setSimulator(viewer, debug);
 
-    if(gpuMode)
-    {
-        if (!this->openClContext.create())
-        {
-            std::cerr << "Could not create OpenCL context for the GPU\n" << std::endl;
-            throw std::runtime_error("saProject::saProject: Could not create OpenCL context for the GPU\n");
-        }
+    _createGUI(viewer);
 
-        this->openClInput = this->openClContext.createVector<float>(kinSize);
-    }
-    //********** fin config OpencCL  *********
+    this->Trace("<- saProject");
+}
 
+void saProject::_createParticles(unsigned int nbItems, int debug)
+{
+    wlAnimatedMesh * ball;
     int xMin=-10, xMax=10, yMin=-10, yMax=10, zMin=50, zMax=60, velMin=0, velMax=8;
     float Xp, Yp, Zp, Xv, Yv, Zv;
 
     //Random seeding
     ::srand(time(NULL));
 
-    for(unsigned int index = 0; index < kinSize; index+=6)
+    for(unsigned int index = 0; index < nbItems; ++index)
     {
         ball = new Particle(this->balls, debug, NULL, "sphere.off");
-//        ball = new wlAnimatedSphere(debug, NULL, "sphere.off");
 
         //Position
         Xp = ::rand() % (xMax - xMin + 1) + xMin;
@@ -123,19 +117,43 @@ saProject::saProject(QString title, QSize size, int debug, bool gpuMode)
         ball->Reset();
         this->balls << ball;
     }
+}
 
+void saProject::_setSimulator(saViewer *viewer, int debug)
+{
+    wlSimulationEnvironment *env = new wlGround(debug);
+
+//    this->simulator = new wlSimulator(debug, viewer, env, &this->balls);
+    ParticleSimulator * ps = new ParticleSimulator(debug, viewer, env, &this->balls);
+    ps->setSmoothingTolerance(10.);
+    ps->setPressureToDensityGradientProportionnality(20.);
+    this->simulator = ps;
+
+    if(this->gpuMode)
     {
-//        this->simulator = new wlSimulator(debug, viewer, env, &this->balls);
-        ParticleSimulator * ps = new ParticleSimulator(debug, viewer, env, &this->balls);
-        ps->setSmoothingTolerance(10.);
-        ps->setPressureToDensityGradientProportionnality(20.);
-        this->simulator = ps;
-
-        if(this->gpuMode)
-        {
-            this->simulator->setOpenClContext(&this->openClContext, &this->openClInput);
-        }
+        this->simulator->setOpenClContext(&this->openClContext, &this->openClInput);
     }
+}
+
+void saProject::_configOpenCL(bool gpuMode, unsigned int nbItems)
+{
+    this->gpuMode = gpuMode;
+    unsigned int kinSize = 6*nbItems; //OpenCL: taille du tableau des valeurs cinématiques
+
+    if(gpuMode)
+    {
+        if (!this->openClContext.create())
+        {
+            std::cerr << "Could not create OpenCL context for the GPU\n" << std::endl;
+            throw std::runtime_error("saProject::saProject: Could not create OpenCL context for the GPU\n");
+        }
+
+        this->openClInput = this->openClContext.createVector<float>(kinSize);
+    }
+}
+
+void saProject::_createGUI(saViewer *viewer)
+{
 
     //
     // Menus
@@ -359,8 +377,8 @@ saProject::saProject(QString title, QSize size, int debug, bool gpuMode)
     // Finally display everything
     //
     this->show();
-    this->Trace("<- saProject");
 }
+
 
 // Slot: choisis un fichier contenant une mesh au format OFF
 void
