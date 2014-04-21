@@ -9,7 +9,7 @@
 class Particle : public wlAnimatedSphere
 {
 public:
-    Particle(const QVector<wlAnimatedMesh *> & others,
+    Particle(const QVector<wlAnimatedMesh *> & everyone,
              int debug=0, wlQGLViewer *const v=NULL, QString filename=QString());
 
     /// \brief Definit la masse de la mesh.
@@ -44,7 +44,7 @@ protected:
     float _previous_density;
     float _previous_pressure;
 
-    const QVector<wlAnimatedMesh *> & _others;
+    const QVector<wlAnimatedMesh *> & _everyone;
 
 private:
     virtual void Clear();

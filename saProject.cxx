@@ -83,7 +83,7 @@ saProject::saProject(QString title, QSize size, int debug, bool gpuMode)
     }
     //********** fin config OpencCL  *********
 
-    int posMin=40, posMax=50, velMin=0, velMax=8;
+    int xMin=-10, xMax=10, yMin=-10, yMax=10, zMin=50, zMax=60, velMin=0, velMax=8;
     float Xp, Yp, Zp, Xv, Yv, Zv;
 
     //Random seeding
@@ -95,9 +95,9 @@ saProject::saProject(QString title, QSize size, int debug, bool gpuMode)
 //        ball = new wlAnimatedSphere(debug, NULL, "sphere.off");
 
         //Position
-        Xp = ::rand() % (posMax - posMin + 1) + posMin;
-        Yp = ::rand() % (posMax - posMin + 1) + posMin;
-        Zp = ::rand() % (posMax - posMin + 1) + posMin;
+        Xp = ::rand() % (xMax - xMin + 1) + xMin;
+        Yp = ::rand() % (yMax - yMin + 1) + yMin;
+        Zp = ::rand() % (zMax - zMin + 1) + zMin;
 
         //Initial speed
         Xv = ::rand() % (velMax - velMin + 1) + velMin;
@@ -127,8 +127,8 @@ saProject::saProject(QString title, QSize size, int debug, bool gpuMode)
     {
 //        this->simulator = new wlSimulator(debug, viewer, env, &this->balls);
         ParticleSimulator * ps = new ParticleSimulator(debug, viewer, env, &this->balls);
-        ps->setSmoothingTolerance(100.);
-        ps->setPressureToDensityGradientProportionnality(200.);
+        ps->setSmoothingTolerance(10.);
+        ps->setPressureToDensityGradientProportionnality(20.);
         this->simulator = ps;
 
         if(this->gpuMode)

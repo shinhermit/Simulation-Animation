@@ -4,9 +4,9 @@ ViscosityKernel::ViscosityKernel(const float & maxDist)
     :SPHKernel(maxDist)
 {}
 
-float ViscosityKernel::operator ()(const QVector<float> & pos)const
+float ViscosityKernel::operator ()(const QVector<float> & R_ij)const
 {
-    float dist = std::sqrt(pos[0]*pos[0] + pos[1]*pos[1] + pos[2]*pos[2]);
+    float dist = std::sqrt(R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2]);
 
     if(dist <= _maxDist)
     {
@@ -21,17 +21,17 @@ float ViscosityKernel::operator ()(const QVector<float> & pos)const
         return 0;
 }
 
-QVector<float> ViscosityKernel::gradient(const QVector<float> & pos)const
+QVector<float> ViscosityKernel::gradient(const QVector<float> & R_ij)const
 {
     QVector<float> res;
     float coef;
-    float dist = std::sqrt(pos[0]*pos[0] + pos[1]*pos[1] + pos[2]*pos[2]);
+    float dist = std::sqrt(R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2]);
 
     if(dist <= _maxDist)
     {
         coef = -7.5*(-1.5*dist/_sqrMaxDist + 2/_maxDist - 0.5*_maxDist/std::pow(dist,3)) / std::pow(_maxDist, 3);
 
-        res << coef*pos[0] << coef*pos[1] << coef*pos[2];
+        res << coef*R_ij[0] << coef*R_ij[1] << coef*R_ij[2];
     }
 
     else
@@ -40,13 +40,14 @@ QVector<float> ViscosityKernel::gradient(const QVector<float> & pos)const
     return res;
 }
 
-float ViscosityKernel::laplacian(const QVector<float> & pos)const
+float ViscosityKernel::laplacian(const QVector<float> & R_ij)const
 {
-    float dist = std::sqrt(pos[0]*pos[0] + pos[1]*pos[1] + pos[2]*pos[2]);
+    float dist = std::sqrt(R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2]);
+    float q = dist/_maxDist;
 
     if(dist <= _maxDist)
     {
-        return ( 45*(_maxDist - dist) / std::pow(_maxDist, 6) );
+        return 40*(1 - q) / (3.1415*std::pow(_maxDist, 4));
     }
 
     else

@@ -17,11 +17,11 @@ public:
 
     float getMaxInfluenceDistance()const;
 
-    virtual float operator()(const QVector<float> & pos)const=0;
+    virtual float operator()(const QVector<float> & R_ij)const=0;
 
-    virtual QVector<float> gradient(const QVector<float> & pos)const=0;
+    virtual QVector<float> gradient(const QVector<float> & R_ij)const=0;
 
-    virtual float laplacian(const QVector<float> & pos)const=0;
+    virtual float laplacian(const QVector<float> & R_ij)const=0;
 
 protected:
     float _maxDist;

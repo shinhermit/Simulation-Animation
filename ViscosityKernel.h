@@ -8,11 +8,11 @@ class ViscosityKernel : public SPHKernel
 public:
     ViscosityKernel(const float & maxDist);
 
-    virtual float operator()(const QVector<float> & pos)const;
+    virtual float operator()(const QVector<float> & R_ij)const;
 
-    virtual QVector<float> gradient(const QVector<float> & pos)const;
+    virtual QVector<float> gradient(const QVector<float> & R_ij)const;
 
-    virtual float laplacian(const QVector<float> & pos)const;
+    virtual float laplacian(const QVector<float> & R_ij)const;
 };
 
 #endif // VISCOSITYKERNEL_H

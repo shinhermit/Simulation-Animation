@@ -1,9 +1,9 @@
 #include "Particle.h"
 
-Particle::Particle(const QVector<wlAnimatedMesh *> & others,
+Particle::Particle(const QVector<wlAnimatedMesh *> & everyone,
                    int debug, wlQGLViewer *const v, QString filename)
     : wlAnimatedSphere(debug, v, filename),
-      _others(others)
+      _everyone(everyone)
 {
     Clear();
 }
@@ -50,14 +50,15 @@ void Particle::computeDensity(const SPHKernel & kernel, const float & refDensity
     QVector<float> R_ij;
     QVector<double> myPos, hisPos;
 
-    for(int i=0; i < _others.size(); ++i)
+    myPos = this->getPosition();
+
+    for(int i=0; i < _everyone.size(); ++i)
     {
-        if(_others[i] != this)
+        if(_everyone[i] != this)
         {
-            other = dynamic_cast<Particle*>(_others[i]);
+            other = dynamic_cast<Particle*>(_everyone[i]);
             if(other)
             {
-                myPos = this->getPosition();
                 hisPos = other->getPosition();
                 R_ij << myPos[0] - hisPos[0]
                      << myPos[1] - hisPos[1]
@@ -68,32 +69,12 @@ void Particle::computeDensity(const SPHKernel & kernel, const float & refDensity
         }
     }
 
+    this->_previous_density = this->_density;
+    this->_previous_pressure = this->_pressure;
+
     this->_density = (density <= 0.) ? 1. : density; // Pour les tests uniquement, résoudre plus tard
     this->_pressure = coeff_k*(density - refDensity);
-}
 
-
-void Particle::_displayBefore() const
-{
-    std::cerr << "Particle::computeVelocity: velocity before computation is ("
-              << this->cvel[0] << ", " << this->cvel[1] << ", " << this->cvel[2] << ")" << std::endl;
-    std::cerr << "Particle::computeVelocity: position before computation is ("
-              << this->getPosition()[0] << ", " << this->getPosition()[1] << ", "
-              << this->getPosition()[2] << ")" << std::endl;
-    std::cerr << std::endl;
-}
-
-void Particle::_displayAfter(const QVector<float> & acc) const
-{
-    std::cerr << "Particle::computeVelocity: this->timestep is " << this->timestep << std::endl;
-    std::cerr << "Particle::computeVelocity: computed acceleration is ("
-              << acc[0] << ", " << acc[1] << ", " << acc[2] << ")" << std::endl;
-    std::cerr << "Particle::computeVelocity: velocity after computation is ("
-              << this->cvel[0] << ", " << this->cvel[1] << ", " << this->cvel[2] << ")" << std::endl;
-    std::cerr << "Particle::computeVelocity: position after computation is ("
-              << this->getPosition()[0] << ", " << this->getPosition()[1] << ", "
-              << this->getPosition()[2] << ")" << std::endl;
-    std::cerr << std::endl << std::endl;
 }
 
 // !!! A vérifier: les division par density (density != 0 ?)
@@ -111,14 +92,15 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
     gradP << 0 << 0 << 0;
     laplV << 0 << 0 << 0;
 
-    for(int i=0; i < _others.size(); ++i)
+    myPos = this->getPosition();
+
+    for(int i=0; i < _everyone.size(); ++i)
     {
-        if(_others[i] != this)
+        if(_everyone[i] != this)
         {
-            other = dynamic_cast<Particle*>(_others[i]);
+            other = dynamic_cast<Particle*>(_everyone[i]);
             if(other)
             {
-                myPos = this->getPosition();
                 hisPos = other->getPosition();
                 R_ij << myPos[0] - hisPos[0]
                      << myPos[1] - hisPos[1]
@@ -146,27 +128,67 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
 //    _displayBefore();
 
     //calcul de l'accélération et de la vitesse
-    gravity << 0 << 0 << -9.8;
-    acc << gravity[0] + (-gradP[0] + coeff_mu*laplV[0])/this->getDensity()
-        << gravity[1] + (-gradP[1] + coeff_mu*laplV[1])/this->getDensity()
-        << gravity[2] + (-gradP[2] + coeff_mu*laplV[2])/this->getDensity();
+    if(this->getPosition()[2] > 0.1)
+    {
+        gravity << 0 << 0 << -9.8;
+    }
+    else
+    {
+        gravity << 0 << 0 << 0;
+        this->cvel[0] = this->cvel[1] = this->cvel[2] = 0;
+    }
+
+    acc << gravity[0] + (coeff_mu*laplV[0] - gradP[0])/this->getDensity()
+        << gravity[1] + (coeff_mu*laplV[1] - gradP[1])/this->getDensity()
+        << gravity[2] + (coeff_mu*laplV[2] - gradP[2])/this->getDensity();
 
     ++ this->cstep;
 
     //La vitesse
+    this->cvel_p = this->cvel; //Save v_0
+
     this->cvel[0] += acc[0]*this->timestep;
     this->cvel[1] += acc[1]*this->timestep;
     this->cvel[2] += acc[2]*this->timestep;
 
     //La translation
-    this->Tmat[0] += 0.5*acc[0]*this->timestep*this->timestep*this->cstep;
-    this->Tmat[1] += 0.5*acc[1]*this->timestep*this->timestep*this->cstep;
-    this->Tmat[2] += 0.5*acc[2]*this->timestep*this->timestep*this->cstep;
+    this->Tmat_p = this->Tmat; //Save v_0
+
+    // x = 1/2*a*t^2 + v_0*t + x_0
+    // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
+    float time = this->timestep * this->cstep;
+    float time_p = time - this->timestep;
+    this->Tmat[0] += 0.5*acc[0]*(time*time - time_p*time_p) + this->cvel_p[0]*this->timestep;
+    this->Tmat[1] += 0.5*acc[1]*(time*time - time_p*time_p) + this->cvel_p[1]*this->timestep;
+    this->Tmat[2] += 0.5*acc[2]*(time*time - time_p*time_p) + this->cvel_p[2]*this->timestep;
 
 //    _displayAfter(acc);
 
     this->Modified("Position");
     this->Modified("DisplayList");
+}
+
+void Particle::_displayBefore() const
+{
+    std::cerr << "Particle::computeVelocity: velocity before computation is ("
+              << this->cvel[0] << ", " << this->cvel[1] << ", " << this->cvel[2] << ")" << std::endl;
+    std::cerr << "Particle::computeVelocity: position before computation is ("
+              << this->getPosition()[0] << ", " << this->getPosition()[1] << ", "
+              << this->getPosition()[2] << ")" << std::endl;
+    std::cerr << std::endl;
+}
+
+void Particle::_displayAfter(const QVector<float> & acc) const
+{
+    std::cerr << "Particle::computeVelocity: this->timestep is " << this->timestep << std::endl;
+    std::cerr << "Particle::computeVelocity: computed acceleration is ("
+              << acc[0] << ", " << acc[1] << ", " << acc[2] << ")" << std::endl;
+    std::cerr << "Particle::computeVelocity: velocity after computation is ("
+              << this->cvel[0] << ", " << this->cvel[1] << ", " << this->cvel[2] << ")" << std::endl;
+    std::cerr << "Particle::computeVelocity: position after computation is ("
+              << this->getPosition()[0] << ", " << this->getPosition()[1] << ", "
+              << this->getPosition()[2] << ")" << std::endl;
+    std::cerr << std::endl << std::endl;
 }
 
 void Particle::Step()

@@ -4,30 +4,30 @@ Poly6Kernel::Poly6Kernel(const float & maxDist)
     :SPHKernel(maxDist)
 {}
 
-float Poly6Kernel::operator ()(const QVector<float> & pos)const
+float Poly6Kernel::operator ()(const QVector<float> & R_ij)const
 {
-    float sqrDist = pos[0]*pos[0] + pos[1]*pos[1] + pos[2]*pos[2];
+    float sqrDist = R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2];
 
     if(sqrDist <= _maxDist)
     {
-        return (4*std::pow(_sqrMaxDist - sqrDist, 3) / std::pow(_maxDist, 8));
+        return std::pow(_sqrMaxDist - sqrDist, 3) / (3.1415 * std::pow(_maxDist, 8));
     }
 
     else
         return 0;
 }
 
-QVector<float> Poly6Kernel::gradient(const QVector<float> & pos)const
+QVector<float> Poly6Kernel::gradient(const QVector<float> & R_ij)const
 {
     QVector<float> res;
     float coef;
-    float sqrDist = pos[0]*pos[0] + pos[1]*pos[1] + pos[2]*pos[2];
+    float sqrDist = R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2];
 
     if(sqrDist <= _maxDist)
     {
-        coef = -24*std::pow(_sqrMaxDist - sqrDist, 2) / std::pow(_maxDist, 8);
+        coef = -24*std::pow(_sqrMaxDist - sqrDist, 2) / (3.1415 * std::pow(_maxDist, 8));
 
-        res << coef*pos[0] << coef*pos[2] << coef*pos[2];
+        res << coef*R_ij[0] << coef*R_ij[1] << coef*R_ij[2];
     }
 
     else
@@ -36,13 +36,13 @@ QVector<float> Poly6Kernel::gradient(const QVector<float> & pos)const
     return res;
 }
 
-float Poly6Kernel::laplacian(const QVector<float> & pos)const
+float Poly6Kernel::laplacian(const QVector<float> & R_ij)const
 {
-    float sqrDist = pos[0]*pos[0] + pos[1]*pos[1] + pos[2]*pos[2];
+    float sqrDist = R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2];
 
     if(sqrDist <= _maxDist)
     {
-        return ( -24*(_sqrMaxDist - sqrDist)*(3*_sqrMaxDist - 7*sqrDist) / std::pow(_maxDist, 8) );
+        return -48*(_sqrMaxDist - sqrDist)*(_sqrMaxDist - 3*sqrDist) / (3.1415*std::pow(_maxDist, 8));
     }
 
     else

@@ -141,7 +141,6 @@ void ParticleSimulator::_cpuStep()
             particle->computeDensity(poly6, this->_coeff_rho0, this->_coeff_k);
         }
 
-//        std::cerr << "ParticleSimulator::_cpuStep: computed density of particle " << i << " is " << particle->getDensity() << std::endl;
     }
 
     //compute velocities now
@@ -152,16 +151,6 @@ void ParticleSimulator::_cpuStep()
         if(particle)
         {
             particle->computeTranslation(spiky, viscy, this->_coeff_mu);
-
-//            std::cerr << "ParticleSimulator::_cpuStep: computed velocity of particle "
-//                      << i << " is (" << particle->GetVelocity()[0]<< ", "
-//                      << particle->GetVelocity()[1] << ", "
-//                      << particle->GetVelocity()[2] << ")" << std::endl;
-
-//            std::cerr << "ParticleSimulator::_cpuStep: computed position of particle "
-//                      << i << " is (" << particle->getPosition()[0]<< ", "
-//                      << particle->getPosition()[1] << ", "
-//                      << particle->getPosition()[2] << ")" << std::endl;
         }
     }
 }

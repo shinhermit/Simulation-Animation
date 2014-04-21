@@ -4,9 +4,9 @@ SpikyKernel::SpikyKernel(const float & maxDist)
     :SPHKernel(maxDist)
 {}
 
-float SpikyKernel::operator ()(const QVector<float> & pos) const
+float SpikyKernel::operator ()(const QVector<float> & R_ij) const
 {
-    float dist = std::sqrt(pos[0]*pos[0] + pos[1]*pos[1] + pos[2]*pos[2]);
+    float dist = std::sqrt(R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2]);
 
     if(dist <= _maxDist)
     {
@@ -17,17 +17,18 @@ float SpikyKernel::operator ()(const QVector<float> & pos) const
         return 0;
 }
 
-QVector<float> SpikyKernel::gradient(const QVector<float> & pos)const
+QVector<float> SpikyKernel::gradient(const QVector<float> & R_ij)const
 {
     QVector<float> res;
     float coef;
-    float dist = std::sqrt(pos[0]*pos[0] + pos[1]*pos[1] + pos[2]*pos[2]);
+    float dist = std::sqrt(R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2]);
+    float q = dist/_maxDist;
 
     if(dist <= _maxDist)
     {
-        coef = -45*std::pow(_maxDist/dist - 1, 2) / std::pow(_maxDist, 6);
+        coef = -30*std::pow(1-q, 2) / (3.1415*q*std::pow(_maxDist, 4));
 
-        res << coef*pos[0] << coef*pos[1] << coef*pos[2];
+        res << coef*R_ij[0] << coef*R_ij[1] << coef*R_ij[2];
     }
 
     else
@@ -36,9 +37,9 @@ QVector<float> SpikyKernel::gradient(const QVector<float> & pos)const
     return res;
 }
 
-float SpikyKernel::laplacian(const QVector<float> & pos)const
+float SpikyKernel::laplacian(const QVector<float> & R_ij)const
 {
-    float dist = std::sqrt(pos[0]*pos[0] + pos[1]*pos[1] + pos[2]*pos[2]);
+    float dist = std::sqrt(R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2]);
 
     if(dist <= _maxDist)
     {
