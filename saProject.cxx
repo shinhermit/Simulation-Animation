@@ -65,7 +65,7 @@ saProject::saProject(QString title, QSize size, int debug, bool gpuMode)
 //    viewer->setAxisIsDrawn();
     viewer->show();
 
-    unsigned int nbItems = 20;
+    unsigned int nbItems = 27;
     _configOpenCL(gpuMode, nbItems);
     _createParticles(nbItems, debug);
     _setSimulator(viewer, debug);
@@ -78,44 +78,45 @@ saProject::saProject(QString title, QSize size, int debug, bool gpuMode)
 void saProject::_createParticles(unsigned int nbItems, int debug)
 {
     wlAnimatedMesh * ball;
-    int xMin=-10, xMax=10, yMin=-10, yMax=10, zMin=50, zMax=60, velMin=0, velMax=8;
-    float Xp, Yp, Zp, Xv, Yv, Zv;
+    float Xp, Yp, Zp, zOffset;
+    unsigned int index;
 
-    //Random seeding
-    ::srand(time(NULL));
+    double itemsPerSide = ::pow(nbItems, 1./3);
+    float step = 3;
+    zOffset = 50;
 
-    for(unsigned int index = 0; index < nbItems; ++index)
+    for(unsigned int i=0; i < itemsPerSide; ++i)
     {
-        ball = new Particle(this->balls, debug, NULL, "sphere.off");
-
-        //Position
-        Xp = ::rand() % (xMax - xMin + 1) + xMin;
-        Yp = ::rand() % (yMax - yMin + 1) + yMin;
-        Zp = ::rand() % (zMax - zMin + 1) + zMin;
-
-        //Initial speed
-        Xv = ::rand() % (velMax - velMin + 1) + velMin;
-        Yv = ::rand() % (velMax - velMin + 1) + velMin;
-        Zv = ::rand() % (velMax - velMin + 1) + velMin;
-
-        ball->SetPosition(Xp, Yp, Zp);
-        ball->SetVelocity(Xv, Yv, Zv);
-
-        if(gpuMode)
+        Xp = i*step;
+        for(unsigned int j=0; j < itemsPerSide; ++j)
         {
-            this->openClInput[index] = Xp;
-            this->openClInput[index+1] = Yp;
-            this->openClInput[index+2] = Zp;
+            Yp = j*step;
+            for(unsigned int k=0; k < itemsPerSide; ++k)
+            {
+                Zp = k*step + zOffset;
 
-            this->openClInput[index+3] = Xv;
-            this->openClInput[index+4] = Yv;
-            this->openClInput[index+5] = Zv;
+                ball = new Particle(this->balls, debug, NULL, "sphere.off");
+                ball->SetPosition(Xp, Yp, Zp);
+                ball->SetVelocity(0, 0, 0);
+
+                if(gpuMode)
+                {
+                    index = i + j*itemsPerSide + k*itemsPerSide*itemsPerSide;
+                    this->openClInput[index] = Xp;
+                    this->openClInput[index+1] = Yp;
+                    this->openClInput[index+2] = Zp;
+
+                    this->openClInput[index+3] = 0;
+                    this->openClInput[index+4] = 0;
+                    this->openClInput[index+5] = 0;
+                }
+
+                ball->SetReaction(PURE_KINEMATIC);
+                ball->SetAttenuationCoefficientForPureKinematicReaction(k1);
+                ball->Reset();
+                this->balls << ball;
+            }
         }
-
-        ball->SetReaction(PURE_KINEMATIC);
-        ball->SetAttenuationCoefficientForPureKinematicReaction(k1);
-        ball->Reset();
-        this->balls << ball;
     }
 }
 
