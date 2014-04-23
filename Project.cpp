@@ -25,6 +25,16 @@ char *Project::GetClassName()
     return "SA Project";
 }
 
+void Project::setGPUMode(const bool & trueFalse)
+{
+    _simulator->setGPUMode(trueFalse);
+}
+
+bool Project::isGPUMode() const
+{
+    return _simulator->isGPUMode();
+}
+
 void Project::setViewSize(const int & width, const int & height)
 {
     _view->setSize(width, height);

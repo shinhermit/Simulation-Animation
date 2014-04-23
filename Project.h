@@ -35,6 +35,9 @@ public:
     ~Project();
     virtual char *GetClassName();
 
+    void setGPUMode(const bool & trueFalse);
+    bool isGPUMode()const;
+
     void setViewSize(const int & width, const int & height);
     void show();
 };

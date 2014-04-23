@@ -2,7 +2,7 @@
 
 const int DefaultParameters::WindowSize[2] = {800, 700};
 const int DefaultParameters::NbSteps = 200;
-const unsigned int DefaultParameters::NbParticles = 27;
+const unsigned int DefaultParameters::NbParticles = 3*3*3;
 const double DefaultParameters::TimeStep = 0.1;
 
 const double DefaultParameters::Coeff_d = 0.1;
