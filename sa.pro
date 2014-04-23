@@ -10,7 +10,7 @@ QMAKE_CXXFLAGS += -Wno-write-strings
 QMAKE_CXXFLAGS_DEBUG += -Wno-deprecated
 QMAKE_CXXFLAGS_RELEASE += -Wno-deprecated
 
-HEADERS += saProject.h wlCore.h saViewer.h wlQGLViewer.h wlAnimatedMesh.h wlMesh.h wlAnimatedSphere.h wlSimulator.h wlCage.h wlGround.h wlSimulationEnvironment.h \
+HEADERS += wlCore.h saViewer.h wlQGLViewer.h wlAnimatedMesh.h wlMesh.h wlAnimatedSphere.h wlSimulator.h wlCage.h wlGround.h wlSimulationEnvironment.h \
     ParticleSimulator.h \
     SPHKernel.h \
     SpikyKernel.h \
@@ -19,8 +19,9 @@ HEADERS += saProject.h wlCore.h saViewer.h wlQGLViewer.h wlAnimatedMesh.h wlMesh
     Particle.h \
     SPHKernels.h \
     ProjectView.h \
-    Project.h
-SOURCES += sa.cxx saProject.cxx wlCore.cxx saViewer.cxx wlQGLViewer.cxx wlAnimatedMesh.cxx wlMesh.cxx wlAnimatedSphere.cxx wlSimulator.cxx wlCage.cxx wlGround.cxx wlSimulationEnvironment.cxx \
+    Project.h \
+    sa.h
+SOURCES += sa.cxx wlCore.cxx saViewer.cxx wlQGLViewer.cxx wlAnimatedMesh.cxx wlMesh.cxx wlAnimatedSphere.cxx wlSimulator.cxx wlCage.cxx wlGround.cxx wlSimulationEnvironment.cxx \
     ParticleSimulator.cpp \
     SPHKernel.cpp \
     SpikyKernel.cpp \

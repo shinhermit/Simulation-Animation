@@ -61,8 +61,12 @@ protected:
 
     //*********** OpenCl *********
     bool _gpuMode;
+
+    // The following 2 pointers are received from class Project
+    // No need for memory cleaning
     QCLContext * _openClContext;
     QCLVector<float> * _openClInput;
+
     QCLProgram _openClProgram;
     QCLKernel _openClKernel;
 

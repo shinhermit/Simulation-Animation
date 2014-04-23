@@ -66,6 +66,4 @@ void Project::_setSimulator(const unsigned int & nbItems, saViewer *viewer, int 
     {
         _simulator->setOpenClContext(&this->_openClContext, &this->_openClInput);
     }
-
-    _simulator->draw();
 }
