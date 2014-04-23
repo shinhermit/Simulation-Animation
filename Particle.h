@@ -2,16 +2,16 @@
 #define PARTICLE_H
 
 #include <stdexcept>
+#include <iostream>
 
-#include "wlAnimatedSphere.h"
+#include "AnimatedObject.h"
 #include "SPHKernels.h"
 #include "DefaultParameters.h"
 
-class Particle : public wlAnimatedMesh
+class Particle : public AnimatedObject
 {
 public:
-    Particle(const QVector<wlAnimatedMesh *> & everyone,
-             int debug=0, wlQGLViewer *const v=NULL, QString filename=QString());
+    Particle(const QVector<AnimatedObject*> & everyone, int debug=0);
 
     /// \brief Definit la masse de la mesh.
     virtual void setMass(const float & mass) throw(std::invalid_argument);
@@ -27,11 +27,9 @@ public:
 
 public slots:
     /// \brief Ramene l'objet dans sa configuration initiale.
-    virtual void Reset();
+    virtual void reset();
     /// \brief On redéfinit cette méthode pour la désactiver.
-    virtual void Step();
-    /// \brief Revient au pas de temps precedent.
-    virtual void Back();
+    virtual void step();
 
     virtual void computeDensity(const SPHKernel & kernel, const float & refDensity, const float & coeff_k);
 
@@ -42,13 +40,9 @@ protected:
     float _density;
     float _pressure;
 
-    float _previous_density;
-    float _previous_pressure;
+    const QVector<AnimatedObject *> & _everyone;
 
-    const QVector<wlAnimatedMesh *> & _everyone;
-
-private:
-    virtual void Clear();
+    virtual void _clear();
 
     void _displayBefore()const;
     void _displayAfter(const QVector<float> & acc)const;

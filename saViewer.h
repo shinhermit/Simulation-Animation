@@ -26,8 +26,8 @@ public:
   saViewer(QWidget *parent=0, QSize size=QSize(SAZE,SAZE), const QGLWidget *shareWidget=0, Qt::WFlags flags=0);
   saViewer(QGLContext *context, QWidget *parent=0, QSize size=QSize(SAZE,SAZE), const QGLWidget *shareWidget=0, Qt::WFlags flags=0);
   saViewer(const QGLFormat &format, QWidget *parent=0, QSize size=QSize(SAZE,SAZE), const QGLWidget *shareWidget=0, Qt::WFlags flags=0);
-  virtual ~saViewer() {};
-  virtual char *GetClassName() {return "saViewer";};
+  virtual ~saViewer() {}
+  virtual char *GetClassName() {return "saViewer";}
 
 public slots:
   virtual void draw();

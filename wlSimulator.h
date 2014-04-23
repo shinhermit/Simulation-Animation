@@ -38,9 +38,9 @@ public:
                 wlSimulationEnvironment *environment=NULL,
                 QVector<wlAnimatedMesh *> * items=NULL);
     /// Destructeur.
-    virtual ~wlSimulator() {}
+    virtual ~wlSimulator();
     /// Necessaire pour l'heritage de la classe wlCore.
-    virtual char *GetClassName() {return "wlSimulator";};
+    virtual char *GetClassName()const;
 
     /// \brief Associe un nouvel environnement.
     virtual void SetEnvironment(wlSimulationEnvironment *env);
@@ -50,26 +50,11 @@ public:
     virtual void ClearItems();
     /// \brief Renvoie vrai si un environnement de simulation existe.
     /// L'environnement de simulation designe typiquement en un ensemble d'obstacles fixes.
-    virtual bool HasEnvironment() {return this->environment != NULL;};
+    virtual bool HasEnvironment()const;
 
 signals:
 
 public slots:
-    /// \brief Definit le type de reaction utilisee pour gerer le rebond.
-    virtual void SetReaction(int index);
-    /// \brief Definit le coefficient d'attenuation du rebond lors d'une reaction cinematique pure.
-    virtual void SetAttenuationCoefficientForPureKinematicReaction(double k);
-    /// \brief Definit le coefficient d'attenuation du rebond lors d'une reaction cinematique pure.
-    virtual void SetAttenuationCoefficientForPureKinematicReaction(QString t);
-    /// \brief Definit la resistance des ressorts utilises lors d'une reaction a handicap.
-    virtual void SetSpringCoefficientForPenaltyReaction(double Ks);
-    /// \brief Definit la resistance des ressorts utilises lors d'une reaction a handicap.
-    virtual void SetSpringCoefficientForPenaltyReaction(QString t);
-    /// \brief Definit la masse associee aux points lors d'une reaction a handicap.
-    virtual void SetPointWeightForPenaltyReaction(double m);
-    /// \brief Definit la masse associee aux points lors d'une reaction a handicap.
-    virtual void SetPointWeightForPenaltyReaction(QString t);
-
     /// \brief Definit le nombre de pas de temps de l'animation.
     void SetNumberOfTimeSteps(int n);
     /// \brief Definit le nombre de pas de temps de l'animation.
@@ -114,14 +99,6 @@ protected:
     int cstep;
     // le timer pour le temps reel
     QTimer *timer;
-    // le type de reaction utilisee pour gerer les rebonds
-    int reaction;
-    // le coefficient d'attenuation du rebond lors d'une reaction cinematique pure
-    double k;
-    // la resistance des ressorts utilises lors d'une reaction a handicap
-    double Ks;
-    // la masse associee aux points lors d'une reaction a handicap
-    double m;
 
     // vide toutes les structures internes
     virtual void Clear();

@@ -2,15 +2,15 @@
 
 ParticleSimulator::ParticleSimulator(const unsigned int & nbParticles, int debug, saViewer *viewer,
                                      wlSimulationEnvironment *environment)
-    :wlSimulator(debug, viewer, environment, new QVector<wlAnimatedMesh*>())
+    :Simulator(debug, viewer, environment, new QVector<AnimatedObject*>())
 {
-    this->Clear();
+    _clear();
     _createParticles(nbParticles, debug);
 }
 
-void ParticleSimulator::Clear()
+void ParticleSimulator::_clear()
 {
-    wlSimulator::Clear();
+    Simulator::_clear();
 
     _gpuMode = false;
     _coeff_d = DefaultParameters::Coeff_d;
@@ -42,9 +42,9 @@ void ParticleSimulator::_createParticles(const unsigned int & nbItems, const int
             {
                 Zp = k*step + zOffset;
 
-                particle = new Particle(this->items, debug, NULL, "sphere.off");
-                particle->SetPosition(Xp, Yp, Zp);
-                particle->SetVelocity(0, 0, 0);
+                particle = new Particle(_items, debug);
+                particle->setInitialPosition(Xp, Yp, Zp);
+                particle->setInitialVelocity(0, 0, 0);
 
                 // Problem: à ce niveau, _openClInput n'est pas encore défini
                 // (setOpenClContext pas encore appelée)
@@ -61,11 +61,9 @@ void ParticleSimulator::_createParticles(const unsigned int & nbItems, const int
                     clInput[index+5] = 0;
                 }
 
-                particle->SetReaction(PURE_KINEMATIC);
-                particle->SetAttenuationCoefficientForPureKinematicReaction(0.8);
-                particle->Reset();
+                particle->reset();
 
-                this->AddItem(particle);
+                this->addItem(particle);
             }
         }
     }
@@ -125,31 +123,31 @@ void ParticleSimulator::setInitialDensity(const double & coeff_rho0) throw(std::
 
 void ParticleSimulator::setParticlesMass(const double & mass) throw(std::invalid_argument)
 {
-    for(int i=0; i < items.size(); ++i)
+    for(int i=0; i < _items.size(); ++i)
     {
-        Particle * particle = dynamic_cast<Particle*>(items[i]);
+        Particle * particle = dynamic_cast<Particle*>(_items[i]);
 
         particle->setMass(mass);
     }
 }
 
-void ParticleSimulator::Reset()
+void ParticleSimulator::reset()
 {
-    Clear();
-    wlSimulator::Reset();
+    _clear();
+    Simulator::reset();
 }
 
 void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
                                          QCLVector<float> * openClInput)
 {
-    this->_gpuMode = true;
+    _gpuMode = true;
 
-    this->_openClContext = openClContext;
-    this->_openClInput = openClInput;
+    _openClContext = openClContext;
+    _openClInput = openClInput;
 
-    this->_openClProgram = this->_openClContext->buildProgramFromSourceFile("./particules.c");
-    this->_openClKernel = this->_openClProgram.createKernel("particules");
-    this->_openClKernel.setGlobalWorkSize(this->items.size());
+    _openClProgram = _openClContext->buildProgramFromSourceFile("./particules.c");
+    _openClKernel = _openClProgram.createKernel("particules");
+    _openClKernel.setGlobalWorkSize(_items.size());
 }
 
 void ParticleSimulator::setGPUMode(const bool & gpuMode) throw(std::logic_error)
@@ -162,9 +160,9 @@ void ParticleSimulator::setGPUMode(const bool & gpuMode) throw(std::logic_error)
     this->_gpuMode = gpuMode;
 }
 
-void ParticleSimulator::PrintSelf()
+void ParticleSimulator::printSelf()
 {
-    wlSimulator::PrintSelf();
+    Simulator::printSelf();
 
     this->Print("ParticleSimulator::PrintSelf");
     if(_gpuMode)
@@ -176,15 +174,15 @@ void ParticleSimulator::PrintSelf()
 
 void ParticleSimulator::_gpuStep()
 {
-    QCLVector<float> & openClInput = *this->_openClInput;
+    QCLVector<float> & openClInput = *_openClInput;
 
-    this->_openClKernel(openClInput, (float)this->timestep);
+    _openClKernel(openClInput, (float)_timestep);
 
-    for(int i = 0; i < items.size(); ++i)
+    for(int i = 0; i < _items.size(); ++i)
     {
         int index = i*6;
-        items[i]->SetPosition(openClInput[index], openClInput[index+1], openClInput[index+2]);
-        items[i]->SetVelocity(openClInput[index+3], openClInput[index+4], openClInput[index+5]);
+        _items[i]->setPosition(openClInput[index], openClInput[index+1], openClInput[index+2]);
+        _items[i]->setVelocity(openClInput[index+3], openClInput[index+4], openClInput[index+5]);
     }
 }
 
@@ -198,9 +196,9 @@ void ParticleSimulator::_cpuStep()
     Particle * particle;
 
     //Compute densities first
-    for(int i=0; i < items.size(); ++i)
+    for(int i=0; i < _items.size(); ++i)
     {
-        particle = dynamic_cast<Particle*>(items[i]);
+        particle = dynamic_cast<Particle*>(_items[i]);
 
         if(particle)
         {
@@ -210,9 +208,9 @@ void ParticleSimulator::_cpuStep()
     }
 
     //compute velocities now
-    for(int i=0; i < items.size(); ++i)
+    for(int i=0; i < _items.size(); ++i)
     {
-        particle = dynamic_cast<Particle*>(items[i]);
+        particle = dynamic_cast<Particle*>(_items[i]);
 
         if(particle)
         {
@@ -221,8 +219,7 @@ void ParticleSimulator::_cpuStep()
     }
 }
 
-void
-ParticleSimulator::Step()
+void ParticleSimulator::step()
 {
     this->Trace("-> Step()");
 
@@ -236,11 +233,13 @@ ParticleSimulator::Step()
         _cpuStep();
     }
 
-    ++this->cstep;
-    if(this->cstep > this->nsteps)
-        this->timer->stop();
+    ++_cstep;
 
-    // maintenant qu'on est est parvenu a calculer un pas de temps on met a jour l'affichage
-    this->viewer->updateGL();
+    if(_cstep > _nsteps)
+        _timer->stop();
+
+    this->draw();
+    _viewer->updateGL();
+
     this->Trace("<- Step()");
 }

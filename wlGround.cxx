@@ -36,15 +36,3 @@ wlGround::wlGround(int debug)
   this->SetTexture(QImage("Sand00.png"));
   this->Trace("<- wlGround()");
 }
-
-QVector<double>
-wlGround::ComputeCollision(wlAnimatedMesh *am)
-{
-    if (am == NULL) {
-      this->Error("ComputeCollision: pointeur sur mesh null");
-      return QVector<double>();
-    }
-    QVector<double> equation;
-    equation << 0 << 0 << 0 << 0 << 0 << 1;
-    return am->ComputeCollisionWithPlan(equation);
-}

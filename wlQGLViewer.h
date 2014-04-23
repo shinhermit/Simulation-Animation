@@ -29,18 +29,19 @@ public:
   wlQGLViewer(QWidget *parent=0, QSize size=QSize(SAZE,SAZE), const QGLWidget *shareWidget=0, Qt::WFlags flags=0);
   wlQGLViewer(QGLContext *context, QWidget *parent=0, QSize size=QSize(SAZE,SAZE), const QGLWidget *shareWidget=0, Qt::WFlags flags=0);
   wlQGLViewer(const QGLFormat &format, QWidget *parent=0, QSize size=QSize(SAZE,SAZE), const QGLWidget *shareWidget=0, Qt::WFlags flags=0);
-  virtual ~wlQGLViewer() {};
-  virtual char *GetClassName() {return "wlQGLViewer";};
+  virtual ~wlQGLViewer() {}
+  virtual char *GetClassName() {return "wlQGLViewer";}
   virtual QSize sizeHint () const;
 
   /// \brief Ajoute une mesh a la liste des mesh gerees par le viewer.
-  void AddMesh(wlMesh *m) {this->meshes.append(m);};
+  void AddMesh(wlMesh *m) {this->meshes.append(m);}
 
   /// \brief Specifie les noms du repertoire et du nom de base des fichiers image qui seront utilises pour sauvegarder les differentes vues 3D.
-  void SetImageNames(QString dir, QString basename) {
+  void SetImageNames(QString dir, QString basename)
+  {
     this->SetImageDirectory(dir);
     this->SetImageBasename(basename);
-  };
+  }
 
 public slots:
   /// \brief La methode de la classe mere est inchangee sauf qu'on sauvegarde eventuellement la vue immediatement le calcul fini.
@@ -50,7 +51,8 @@ public slots:
   /// \brief Specifie le nom de base des fichiers image contenant les differentes vues 3D.
   void SetImageBasename(QString basename);
   /// \brief Precise si les snapshot doivent etre sauvegardes ou pas.
-  void SaveSnapshot(int on) {
+  void SaveSnapshot(int on)
+  {
     this->save_snapshot = on ? true : false;
   }
   /// \brief Sauvegarde l'image courante.

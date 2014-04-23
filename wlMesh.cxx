@@ -982,6 +982,7 @@ wlMesh::Translate(QVector<float> v)
 {
   vecteur = v;
   this->SparcoursFinis(translate);
+
   this->Modified("DisplayList");
   this->Modified("MeshSize");
 }

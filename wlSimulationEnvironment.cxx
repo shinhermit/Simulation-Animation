@@ -14,26 +14,5 @@ wlSimulationEnvironment::wlSimulationEnvironment(int debug)
 {
   this->Trace("-> wlSimulationEnvironment()");
   wlMesh::Clear();
-  this->tolerance = 0.01;
   this->Trace("<- wlSimulationEnvironment()");
-}
-
-void
-wlSimulationEnvironment::PrintSelf()
-{
-  this->Print("tolerance : %lf", this->tolerance);
-}
-
-void
-wlSimulationEnvironment::PrintContent()
-{
-  this->PrintSelf();
-}
-
-QVector<double>
-wlSimulationEnvironment::ComputeCollision(wlAnimatedMesh *am)
-{
-  if (am == NULL)
-    this->Error("ComputeCollision: pointeur sur mesh null");
-  return QVector<double>();
 }

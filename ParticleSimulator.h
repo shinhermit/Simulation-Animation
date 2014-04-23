@@ -1,12 +1,14 @@
 #ifndef PARTICLESIMULATOR_H
 #define PARTICLESIMULATOR_H
 
-#include "wlSimulator.h"
+#include <qclcontext.h>
+
+#include "Simulator.h"
 #include "SPHKernels.h"
 #include "Particle.h"
 #include "DefaultParameters.h"
 
-class ParticleSimulator : public wlSimulator
+class ParticleSimulator : public Simulator
 {
     Q_OBJECT
 
@@ -51,13 +53,13 @@ public slots:
     /// \brief Définit la masse des particules de la simulation
     void setParticlesMass(const double & mass) throw(std::invalid_argument);
 
-    void Reset();
+    virtual void reset();
 
     /// \brief Execute un pas de temps de l'animation.
-    virtual void Step();
+    virtual void step();
 
     /// Affiche la valeur des principales variables.
-    virtual void PrintSelf();
+    virtual void printSelf();
 
 protected:
     QVector<Particle> _particles;
@@ -84,7 +86,7 @@ protected:
     float _coeff_rho0;
 
     // vide toutes les structures internes
-    virtual void Clear();
+    virtual void _clear();
 
 private:
     void _createParticles(const unsigned int & nbItems, const int & debug);

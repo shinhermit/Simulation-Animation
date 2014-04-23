@@ -32,9 +32,9 @@ public:
   /// Instancie un nouvel objet dans le mode approprie.
   wlCore(int debug=0);
   /// Destructeur.
-  virtual ~wlCore() {};
+  virtual ~wlCore() {}
   /// Cette methode devra etre surchargee par tous les objets heritant, directement ou indirectement, de wlCore.
-  virtual char *GetClassName() {return "wlCore";};
+  virtual char *GetClassName() {return "wlCore";}
 
   /// Les methodes suivantes permettent de basculer entre les modes debug et normal.
   wlSetGetBooleanMacro(Debug)
@@ -49,11 +49,11 @@ public:
   void Trace(char *format, ...);
 
   /// Place la variable d'etat v dans l'etat ou sa sortie n'est plus a jour par rapport a son entree.
-  inline void Modified(const char *v) {this->modified[v] = 1;};
+  inline void Modified(const char *v) {this->modified[v] = 1;}
   /// Place la variable d'etat v dans l'etat ou sa sortie est a jour par rapport a son entree.
-  inline void Updated(const char *v) {this->modified[v] = 0;};
+  inline void Updated(const char *v) {this->modified[v] = 0;}
   /// Renvoie vrai si la sortie associee a la variable d'etat v est a jour par rapport a son entree.
-  inline unsigned int UpToDate(const char *v) {return !this->modified[v];};
+  inline unsigned int UpToDate(const char *v) {return !this->modified[v];}
 
 private:
   int maxline;

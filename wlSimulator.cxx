@@ -9,12 +9,6 @@
 
 #include "wlSimulator.h"
 
-typedef struct {
-    wlAnimatedMesh *item1;
-    wlAnimatedMesh *item2;
-    QVector<double> collision;
-} t_collision;
-
 wlSimulator::wlSimulator(int debug, saViewer *glViewer,
                          wlSimulationEnvironment *env,
                          QVector<wlAnimatedMesh *> * objects)
@@ -36,6 +30,15 @@ wlSimulator::wlSimulator(int debug, saViewer *glViewer,
     connect(timer, SIGNAL(timeout()), this, SLOT(Step()));
 
     this->Trace("<- wlSimulator()");
+}
+
+wlSimulator::~wlSimulator()
+{}
+
+
+char * wlSimulator::GetClassName() const
+{
+    return "wlSimulator";
 }
 
 void
@@ -101,69 +104,9 @@ wlSimulator::ClearItems()
     this->items.clear();
 }
 
-void
-wlSimulator::SetReaction(int index)
+bool wlSimulator::HasEnvironment()const
 {
-    this->reaction = index;
-    for (int i=0 ; i<this->items.size() ; i++)
-        this->items[i]->SetReaction(index);
-}
-
-void
-wlSimulator::SetAttenuationCoefficientForPureKinematicReaction(QString t)
-{
-    bool ok;
-    double e = t.toDouble(&ok);
-    if (ok)
-        this->SetAttenuationCoefficientForPureKinematicReaction(e);
-}
-
-void
-wlSimulator::SetAttenuationCoefficientForPureKinematicReaction(double k)
-{
-    if (k != this->k && k >= 0 && k <= 1.0) {
-        this->k = k;
-        for (int i=0 ; i<this->items.size() ; i++)
-            this->items[i]->SetAttenuationCoefficientForPureKinematicReaction(k);
-    }
-}
-
-void
-wlSimulator::SetSpringCoefficientForPenaltyReaction(QString t)
-{
-    bool ok;
-    double e = t.toDouble(&ok);
-    if (ok)
-        this->SetSpringCoefficientForPenaltyReaction(e);
-}
-
-void
-wlSimulator::SetSpringCoefficientForPenaltyReaction(double Ks)
-{
-    if (Ks != this->Ks && Ks >= 0) {
-        this->Ks = Ks;
-        for (int i=0 ; i<this->items.size() ; i++)
-            this->items[i]->SetSpringCoefficientForPenaltyReaction(Ks);
-    }
-}
-
-void
-wlSimulator::SetPointWeightForPenaltyReaction(QString t)
-{
-    bool ok;
-    double e = t.toDouble(&ok);
-    if (ok)
-        this->SetPointWeightForPenaltyReaction(e);
-}
-
-void
-wlSimulator::SetPointWeightForPenaltyReaction(double m)
-{
-    if (m != this->m && m >= 0) {
-        this->m = m;
-        for (int i=0 ; i<this->items.size() ; i++)
-            this->items[i]->SetPointWeightForPenaltyReaction(m);
-    }
+    return this->environment != NULL;
 }
 
 void
@@ -200,8 +143,6 @@ wlSimulator::SetNumberOfTimeSteps(int t)
 {
     if (t > 0) {
         this->nsteps = t;
-        for (int i=0 ; i<this->items.size() ; i++)
-            this->items[i]->SetNumberOfTimeSteps(t);
     }
 }
 

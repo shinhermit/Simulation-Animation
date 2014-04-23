@@ -60,11 +60,11 @@ void ProjectView::bindSimulator(ParticleSimulator & simu)
     ParticleSimulator * simulator = &simu;
 
     //Toolbar actions
-    QObject::connect(this, SIGNAL(requestReset()), simulator, SLOT(Reset())); // Reset
-    QObject::connect(_ui->actionRestart, SIGNAL(triggered()), simulator, SLOT(Restart())); // Restart
-    QObject::connect(_ui->actionStep, SIGNAL(triggered()), simulator, SLOT(Step())); // Step
-    QObject::connect(_ui->actionPlay, SIGNAL(triggered()), simulator, SLOT(Play())); // Play
-    QObject::connect(_ui->actionStop, SIGNAL(triggered()), simulator, SLOT(Stop())); // Stop
+    QObject::connect(this, SIGNAL(requestReset()), simulator, SLOT(reset())); // Reset
+    QObject::connect(_ui->actionRestart, SIGNAL(triggered()), simulator, SLOT(restart())); // Restart
+    QObject::connect(_ui->actionStep, SIGNAL(triggered()), simulator, SLOT(step())); // Step
+    QObject::connect(_ui->actionPlay, SIGNAL(triggered()), simulator, SLOT(play())); // Play
+    QObject::connect(_ui->actionStop, SIGNAL(triggered()), simulator, SLOT(stop())); // Stop
 
     //Simulation Parameters controls
     QObject::connect(_ui->spinBox_mu, SIGNAL(valueChanged(double)), simulator, SLOT(setDynamicViscosityConstant(const double &))); // Coeff mu
@@ -72,8 +72,8 @@ void ProjectView::bindSimulator(ParticleSimulator & simu)
     QObject::connect(_ui->spinBox_k, SIGNAL(valueChanged(double)), simulator, SLOT(setPressureToDensityGradientProportionnality(const double &))); // Coeff k
     QObject::connect(_ui->spinBox_rho0, SIGNAL(valueChanged(double)), simulator, SLOT(setInitialDensity(const double &))); // Ref density
     QObject::connect(_ui->spinBox_mass, SIGNAL(valueChanged(double)), simulator, SLOT(setParticlesMass(const double &))); // Particles mass
-    QObject::connect(_ui->spinBox_timestep, SIGNAL(valueChanged(double)), simulator, SLOT(SetTimeStep(const double &))); // Time step
-    QObject::connect(_ui->spinBox_nbSteps, SIGNAL(valueChanged(int)), simulator, SLOT(SetNumberOfTimeSteps(int))); // Number of steps
+    QObject::connect(_ui->spinBox_timestep, SIGNAL(valueChanged(double)), simulator, SLOT(setTimeStep(const double &))); // Time step
+    QObject::connect(_ui->spinBox_nbSteps, SIGNAL(valueChanged(int)), simulator, SLOT(setNumberOfTimeSteps(int))); // Number of steps
 }
 
 void ProjectView::reset()

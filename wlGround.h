@@ -22,15 +22,9 @@ public:
   /// Instancie un nouvel environnement de type sol.
   wlGround(int debug=0);
   /// Destructeur.
-  virtual ~wlGround() {};
+  virtual ~wlGround() {}
   /// Necessaire pour l'heritage de la classe wlCore.
-  virtual char *GetClassName() {return "wlGround";};
-
-  QVector<double> ComputeCollision(wlAnimatedMesh *am);
-
-public slots:
-
-protected:
+  virtual char *GetClassName() {return "wlGround";}
 };
 
 #endif
