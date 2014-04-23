@@ -7,7 +7,7 @@
 #include "SPHKernels.h"
 #include "DefaultParameters.h"
 
-class Particle : public wlAnimatedSphere
+class Particle : public wlAnimatedMesh
 {
 public:
     Particle(const QVector<wlAnimatedMesh *> & everyone,

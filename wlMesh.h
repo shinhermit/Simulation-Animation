@@ -95,8 +95,8 @@ public:
   /// Cree une mesh qui soit une copie conforme d'une autre mesh.
   /// Attention : la nouvelle mesh n'est pas connectee au viewer, il faudra pour cela appeler explicitement ConnectViewer().
   wlMesh(wlMesh *mesh);
-  virtual ~wlMesh() {};
-  virtual char *GetClassName() {return "wlMesh";};
+  virtual ~wlMesh() {}
+  virtual char *GetClassName() {return "wlMesh";}
 
   /// \brief Associe un viewer de type wlQGLViewer a cette mesh.
   /// Si cette mesh est le seul objet que doit gerer ce viewer, il est necessaire d'appeler ensuite la methode <em>ConnectViewer()</em>
@@ -104,9 +104,9 @@ public:
   ///  <em>ConnectViewer(wlQGLViewer *)</em> equivaut a <em>SetViewer(wlQGLViewer *)</em> suivi de <em>ConnectViewer()</em>.
   void SetViewer(wlQGLViewer *viewer);
   /// Renvoie vrai si une viewer a ete connecte a cette mesh.
-  inline bool HasViewer() {return this->GetViewer()!=NULL;};
+  inline bool HasViewer() {return this->GetViewer()!=NULL;}
   /// Renvoie le viewer de type wlQGLViewer.
-  inline wlQGLViewer *GetViewer() {return this->viewer;};
+  inline wlQGLViewer *GetViewer() {return this->viewer;}
   /// \brief Connecte la mesh avec un viewer enregistre au prealable par appel a <em>SetViewer(wlQGLViewer *)</em>.
   /// Cette methode doit etre appelee lorsque la presente mesh est le seul objet a visualiser dans ce viewer.
   /// Ainsi le viewer mettra a jour son affichage par appel a la methode <em>draw()</em> de cet objet.
@@ -118,7 +118,7 @@ public:
   /// Si la mesh doit etre reconstruite, la camera est eventuellement reinitialisee de facon a voir l'ensemble de la mesh.
   GLuint GetList(int reset_camera=0);
   /// \brief Renvoie la liste de shaders utilises pour le rendu de la mesh.
-  QList<QGLShader *> GetShaderList() {return this->shaders;};
+  QList<QGLShader *> GetShaderList() {return this->shaders;}
   /// \brief Associe une liste de shaders afin de gerer le rendu de la mesh.
   void SetShaderList(QList<QGLShader *> shaders);
   /// \brief Ajoute un shader a la liste des shaders.
@@ -129,7 +129,7 @@ public:
   void AddFragmentShaderFromFile(QString filename);
 
   /// Renvoie vrai si cette mesh est vide.
-  inline bool IsEmpty() {return this->G.size()==0;};
+  inline bool IsEmpty() {return this->G.size()==0;}
   /// Renvoie la taille de la mesh au format (<xdim>, <ydim>, <zdim>).
   std::vector<float> GetSize();
   /// Renvoie les limites de la mesh au format (<xmin>, <xmax>, <ymin>, <ymax>, <zmin>, <zmax>).
@@ -142,38 +142,38 @@ public:
   virtual float GetRadius();
 
   /// Renvoie vrai s'il existe un sommet infini dans la mesh (et donc des aretes et triangles infinis).
-  inline bool HasInfiniteSommet() {return this->nb_infinite_sommets;};
+  inline bool HasInfiniteSommet() {return this->nb_infinite_sommets;}
   /// Renvoie le nombre de coins de la mesh.
-  inline unsigned int GetNumberOfCoins() {return this->C.size();};
+  inline unsigned int GetNumberOfCoins() {return this->C.size();}
   /// Renvoie le nombre de coins finis de la mesh.
-  inline unsigned int GetNumberOfFiniteCoins() {return this->GetNumberOfCoins() - this->GetNumberOfInfiniteCoins();};
+  inline unsigned int GetNumberOfFiniteCoins() {return this->GetNumberOfCoins() - this->GetNumberOfInfiniteCoins();}
   /// Renvoie le nombre de coins infinis de la mesh.
-  inline unsigned int GetNumberOfInfiniteCoins() {return this->nb_infinite_coins;};
+  inline unsigned int GetNumberOfInfiniteCoins() {return this->nb_infinite_coins;}
   /// Renvoie le nombre de sommets de la mesh.
-  inline unsigned int GetNumberOfSommets() {return this->G.size();};
+  inline unsigned int GetNumberOfSommets() {return this->G.size();}
   /// Renvoie le nombre de sommets finis de la mesh.
-  inline unsigned int GetNumberOfFiniteSommets() {return this->GetNumberOfSommets() - this->GetNumberOfInfiniteSommets();};
+  inline unsigned int GetNumberOfFiniteSommets() {return this->GetNumberOfSommets() - this->GetNumberOfInfiniteSommets();}
   /// Renvoie le nombre de sommets infinis de la mesh.
-  inline unsigned int GetNumberOfInfiniteSommets() {return this->nb_infinite_sommets;};
+  inline unsigned int GetNumberOfInfiniteSommets() {return this->nb_infinite_sommets;}
   /// Renvoie le nombre d'aretes de la mesh.
-  inline unsigned int GetNumberOfAretes() {return this->C.size() / 2;};
+  inline unsigned int GetNumberOfAretes() {return this->C.size() / 2;}
   /// Renvoie le nombre d'aretes finies de la mesh.
-  inline unsigned int GetNumberOfFiniteAretes() {return this->GetNumberOfFiniteCoins() / 2;};
+  inline unsigned int GetNumberOfFiniteAretes() {return this->GetNumberOfFiniteCoins() / 2;}
   /// Renvoie le nombre d'aretes infinies de la mesh.
-  inline unsigned int GetNumberOfInfiniteAretes() {return this->GetNumberOfInfiniteCoins() / 2;};
+  inline unsigned int GetNumberOfInfiniteAretes() {return this->GetNumberOfInfiniteCoins() / 2;}
   /// Renvoie le nombre de triangles de la mesh.
-  inline unsigned int GetNumberOfTriangles() {return this->T.size();};
+  inline unsigned int GetNumberOfTriangles() {return this->T.size();}
   /// Renvoie le nombre de triangles finis de la mesh.
-  inline unsigned int GetNumberOfFiniteTriangles() {return this->GetNumberOfTriangles() - this->GetNumberOfInfiniteTriangles();};
+  inline unsigned int GetNumberOfFiniteTriangles() {return this->GetNumberOfTriangles() - this->GetNumberOfInfiniteTriangles();}
   /// Renvoie le nombre de triangles infinis de la mesh.
-  inline unsigned int GetNumberOfInfiniteTriangles() {return this->nb_infinite_triangles;};
+  inline unsigned int GetNumberOfInfiniteTriangles() {return this->nb_infinite_triangles;}
 
   /// Renvoie le coin d'identifiant <em>i</em>
-  inline wlCoin &GetCoin(int i) {return this->C[i];};
+  inline wlCoin &GetCoin(int i) {return this->C[i];}
   /// Renvoie le sommet d'identifiant <em>i</em>
-  inline wlSommet &GetSommet(int i) {return this->G[i];};
+  inline wlSommet &GetSommet(int i) {return this->G[i];}
   /// Renvoie le triangle d'identifiant <em>i</em>
-  inline wlTriangle &GetTriangle(int i) {return this->T[i];};
+  inline wlTriangle &GetTriangle(int i) {return this->T[i];}
 
   /// Renvoie vrai si le coin <em>c</em> appartient a un triangle infini.
   bool IsInfinite(wlCoin &c);
@@ -277,7 +277,7 @@ public slots:
   virtual void InitMesh(std::vector<std::vector<float> > vertices, std::vector<std::vector<int> > triangles,
 			unsigned int HasInfiniteVertex=0, unsigned int NbInfiniteTriangles=0);
   /// Affecte une couleur a la mesh.
-  void SetColor(QColor color) {this->color = color;};
+  void SetColor(QColor color) {this->color = color;}
   /// Charge une texure a partir d'un fichier image.
   void LoadTexture(QString filename);
   /// Sauvegarde la mesh dans un fichier au format OFF.

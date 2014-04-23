@@ -2,7 +2,7 @@
 
 Particle::Particle(const QVector<wlAnimatedMesh *> & everyone,
                    int debug, wlQGLViewer *const v, QString filename)
-    : wlAnimatedSphere(debug, v, filename),
+    : wlAnimatedMesh(debug, v, filename),
       _everyone(everyone)
 {
     Clear();
@@ -10,7 +10,7 @@ Particle::Particle(const QVector<wlAnimatedMesh *> & everyone,
 
 void Particle::Clear()
 {
-    wlAnimatedSphere::Clear();
+    wlAnimatedMesh::Clear();
 
     _mass = DefaultParameters::Mass;
     _density = DefaultParameters::Density;
@@ -196,7 +196,7 @@ void Particle::Step()
 
 void Particle::Back()
 {
-    wlAnimatedSphere::Back();
+    wlAnimatedMesh::Back();
 
     _density = _previous_density;
     _pressure = _previous_pressure;
@@ -204,7 +204,7 @@ void Particle::Back()
 
 void Particle::Reset()
 {
-    wlAnimatedSphere::Reset();
+    wlAnimatedMesh::Reset();
 
     _mass = DefaultParameters::Mass;
     _density = DefaultParameters::Density;
