@@ -7,6 +7,7 @@ ProjectView::ProjectView()
     _ui->setupUi(this);
 
     _handleEvents();
+    _setDefaultParameters();
 }
 
 ProjectView::~ProjectView()
@@ -24,10 +25,34 @@ saViewer *ProjectView::getGLViewer()
     return _ui->viewer;
 }
 
+void ProjectView::setSize(int w, int h)
+{
+    QSize size = this->size();
+
+    float wRatio = w / size.width();
+    float hRatio = h / size.height();
+
+    _ui->viewer->setMinimumSize(w*wRatio, h*hRatio);
+    this->setMinimumSize(w,h);
+}
+
 void ProjectView::_handleEvents()
 {
     //Menu actions
     QObject::connect(_ui->actionQuit, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
+    QObject::connect(_ui->actionReset, SIGNAL(triggered()), this, SLOT(reset()));
+}
+
+void ProjectView::_setDefaultParameters()
+{
+    _ui->spinBox_timestep->setValue(DefaultParameters::TimeStep);
+    _ui->spinBox_nbSteps->setValue(DefaultParameters::NbSteps);
+
+    _ui->spinBox_d->setValue(DefaultParameters::Coeff_d);
+    _ui->spinBox_mu->setValue(DefaultParameters::Coeff_mu);
+    _ui->spinBox_k->setValue(DefaultParameters::Coeff_k);
+    _ui->spinBox_rho0->setValue(DefaultParameters::Rho0);
+    _ui->spinBox_mass->setValue(DefaultParameters::Mass);
 }
 
 void ProjectView::bindSimulator(ParticleSimulator & simu)
@@ -35,9 +60,10 @@ void ProjectView::bindSimulator(ParticleSimulator & simu)
     ParticleSimulator * simulator = &simu;
 
     //Toolbar actions
-    QObject::connect(_ui->actionReset, SIGNAL(triggered()), simulator, SLOT(Reset())); // reset
+    QObject::connect(this, SIGNAL(requestReset()), simulator, SLOT(Reset())); // Reset
+    QObject::connect(_ui->actionRestart, SIGNAL(triggered()), simulator, SLOT(Restart())); // Restart
     QObject::connect(_ui->actionStep, SIGNAL(triggered()), simulator, SLOT(Step())); // Step
-    QObject::connect(_ui->actionPlay, SIGNAL(triggered()), simulator, SLOT(Play())); //Play
+    QObject::connect(_ui->actionPlay, SIGNAL(triggered()), simulator, SLOT(Play())); // Play
     QObject::connect(_ui->actionStop, SIGNAL(triggered()), simulator, SLOT(Stop())); // Stop
 
     //Simulation Parameters controls
@@ -48,4 +74,11 @@ void ProjectView::bindSimulator(ParticleSimulator & simu)
     QObject::connect(_ui->spinBox_mass, SIGNAL(valueChanged(double)), simulator, SLOT(setParticlesMass(const double &))); // Particles mass
     QObject::connect(_ui->spinBox_timestep, SIGNAL(valueChanged(double)), simulator, SLOT(SetTimeStep(const double &))); // Time step
     QObject::connect(_ui->spinBox_nbSteps, SIGNAL(valueChanged(int)), simulator, SLOT(SetNumberOfTimeSteps(int))); // Number of steps
+}
+
+void ProjectView::reset()
+{
+    _setDefaultParameters();
+
+    emit requestReset();
 }

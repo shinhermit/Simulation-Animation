@@ -25,6 +25,11 @@ char *Project::GetClassName()
     return "SA Project";
 }
 
+void Project::setViewSize(const int & width, const int & height)
+{
+    _view->setSize(width, height);
+}
+
 void Project::show()
 {
     _view->show();
@@ -59,8 +64,8 @@ void Project::_setSimulator(const unsigned int & nbItems, saViewer *viewer, int 
     wlSimulationEnvironment *env = new wlGround(debug);
 
     _simulator = new ParticleSimulator(nbItems, debug, viewer, env);
-    _simulator->setSmoothingTolerance(10.);
-    _simulator->setPressureToDensityGradientProportionnality(20.);
+    _simulator->setSmoothingTolerance(DefaultParameters::Coeff_d);
+    _simulator->setPressureToDensityGradientProportionnality(DefaultParameters::Coeff_k);
 
     if(this->_gpuMode)
     {

@@ -4,13 +4,14 @@
 #include "wlSimulator.h"
 #include "SPHKernels.h"
 #include "Particle.h"
+#include "DefaultParameters.h"
 
 class ParticleSimulator : public wlSimulator
 {
     Q_OBJECT
 
 public:
-    ParticleSimulator(const unsigned int & nbParticles=27, int debug=0, saViewer *viewer=NULL,
+    ParticleSimulator(const unsigned int & nbParticles=DefaultParameters::NbParticles, int debug=0, saViewer *viewer=NULL,
                       wlSimulationEnvironment *environment=NULL);
 
     /// \brief Fournit le context pour un calcul en GPU et active le mode de calcul parallèle en GPU
@@ -49,6 +50,8 @@ public slots:
 
     /// \brief Définit la masse des particules de la simulation
     void setParticlesMass(const double & mass) throw(std::invalid_argument);
+
+    void Reset();
 
     /// \brief Execute un pas de temps de l'animation.
     virtual void Step();

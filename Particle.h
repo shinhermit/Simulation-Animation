@@ -5,6 +5,7 @@
 
 #include "wlAnimatedSphere.h"
 #include "SPHKernels.h"
+#include "DefaultParameters.h"
 
 class Particle : public wlAnimatedSphere
 {

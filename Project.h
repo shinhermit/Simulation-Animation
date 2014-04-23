@@ -4,6 +4,7 @@
 #include "wlCore.h"
 #include "wlGround.h"
 #include "ProjectView.h"
+#include "DefaultParameters.h"
 
 class Project : public wlCore
 {
@@ -29,11 +30,12 @@ private:
     void _setSimulator(const unsigned int & nbItems, saViewer *viewer, int debug);
 
 public:
-    Project(const unsigned int & nbItems=27,
+    Project(const unsigned int & nbItems=DefaultParameters::NbParticles,
             const int & debug=0, const bool & gpuMode=false);
     ~Project();
     virtual char *GetClassName();
 
+    void setViewSize(const int & width, const int & height);
     void show();
 };
 

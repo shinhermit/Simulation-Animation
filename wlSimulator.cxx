@@ -41,8 +41,8 @@ wlSimulator::wlSimulator(int debug, saViewer *glViewer,
 void
 wlSimulator::Clear()
 {
-    this->nsteps = 200;
-    this->timestep = this->ctimestep = 0.1;
+    this->nsteps = DefaultParameters::NbSteps;
+    this->timestep = this->ctimestep = DefaultParameters::TimeStep;
     this->cstep = 0;
 }
 
@@ -85,9 +85,6 @@ wlSimulator::SetEnvironment(wlSimulationEnvironment *env)
         delete this->environment;
     this->environment = env;
 }
-
-void wlSimulator::setOpenClContext(QCLContext *openClContext, QCLVector<float> *openClInput)
-{}
 
 void
 wlSimulator::AddItem(wlAnimatedMesh *item)
@@ -211,6 +208,16 @@ wlSimulator::SetNumberOfTimeSteps(int t)
 void
 wlSimulator::Reset()
 {
+    Clear();
+
+    for(int i = 0; i < items.size(); ++i)
+    {
+        items[i]->Reset();
+    }
+}
+
+void wlSimulator::Restart()
+{
     for(int i = 0; i < items.size(); ++i)
     {
         items[i]->Reset();
@@ -226,6 +233,11 @@ wlSimulator::Step()
     {
         items[i]->Step();
     }
+
+    ++this->cstep;
+
+    if(this->cstep > this->nsteps)
+        this->timer->stop();
 
     // maintenant qu'on est est parvenu a calculer un pas de temps on met a jour l'affichage
     this->viewer->updateGL();

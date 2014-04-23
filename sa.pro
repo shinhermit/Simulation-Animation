@@ -20,7 +20,8 @@ HEADERS += wlCore.h saViewer.h wlQGLViewer.h wlAnimatedMesh.h wlMesh.h wlAnimate
     SPHKernels.h \
     ProjectView.h \
     Project.h \
-    sa.h
+    sa.h \
+    DefaultParameters.h
 SOURCES += sa.cxx wlCore.cxx saViewer.cxx wlQGLViewer.cxx wlAnimatedMesh.cxx wlMesh.cxx wlAnimatedSphere.cxx wlSimulator.cxx wlCage.cxx wlGround.cxx wlSimulationEnvironment.cxx \
     ParticleSimulator.cpp \
     SPHKernel.cpp \
@@ -29,7 +30,8 @@ SOURCES += sa.cxx wlCore.cxx saViewer.cxx wlQGLViewer.cxx wlAnimatedMesh.cxx wlM
     ViscosityKernel.cpp \
     Particle.cpp \
     ProjectView.cpp \
-    Project.cpp
+    Project.cpp \
+    DefaultParameters.cpp
 
 
   QT       += core

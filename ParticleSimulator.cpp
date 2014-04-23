@@ -6,7 +6,6 @@ ParticleSimulator::ParticleSimulator(const unsigned int & nbParticles, int debug
 {
     this->Clear();
     _createParticles(nbParticles, debug);
-    std::cerr << "ParticleSimulator::ParticleSimulator: nbParticles: " << items.size() << std::endl;
 }
 
 void ParticleSimulator::Clear()
@@ -14,10 +13,10 @@ void ParticleSimulator::Clear()
     wlSimulator::Clear();
 
     _gpuMode = false;
-    _coeff_d = 1.;
-    _coeff_k = 3.;
-    _coeff_mu = 0.1;
-    _coeff_rho0 = 0.;
+    _coeff_d = DefaultParameters::Coeff_d;
+    _coeff_k = DefaultParameters::Coeff_k;
+    _coeff_mu = DefaultParameters::Coeff_mu;
+    _coeff_rho0 = DefaultParameters::Rho0;
 
     _openClContext = NULL;
     _openClInput = NULL;
@@ -134,6 +133,12 @@ void ParticleSimulator::setParticlesMass(const double & mass) throw(std::invalid
     }
 }
 
+void ParticleSimulator::Reset()
+{
+    Clear();
+    wlSimulator::Reset();
+}
+
 void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
                                          QCLVector<float> * openClInput)
 {
@@ -230,6 +235,10 @@ ParticleSimulator::Step()
     {
         _cpuStep();
     }
+
+    ++this->cstep;
+    if(this->cstep > this->nsteps)
+        this->timer->stop();
 
     // maintenant qu'on est est parvenu a calculer un pas de temps on met a jour l'affichage
     this->viewer->updateGL();

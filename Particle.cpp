@@ -12,12 +12,12 @@ void Particle::Clear()
 {
     wlAnimatedSphere::Clear();
 
-    _mass = 1.0;
-    _density = 0.;
-    _pressure = 0.;
+    _mass = DefaultParameters::Mass;
+    _density = DefaultParameters::Density;
+    _pressure = DefaultParameters::Pressure;
 
-    _previous_density = 0.;
-    _previous_pressure = 0.;
+    _previous_density = DefaultParameters::Density;
+    _previous_pressure = DefaultParameters::Pressure;
 }
 
 void Particle::setMass(const float & mass) throw(std::invalid_argument)
@@ -206,9 +206,10 @@ void Particle::Reset()
 {
     wlAnimatedSphere::Reset();
 
-    _density = 0.;
-    _pressure = 0.;
+    _mass = DefaultParameters::Mass;
+    _density = DefaultParameters::Density;
+    _pressure = DefaultParameters::Pressure;
 
-    _previous_density = 0.;
-    _previous_pressure = 0.;
+    _previous_density = DefaultParameters::Density;
+    _previous_pressure = DefaultParameters::Pressure;
 }

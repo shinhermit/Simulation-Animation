@@ -19,6 +19,8 @@
 #include <wlAnimatedMesh.h>
 #include <wlSimulationEnvironment.h>
 
+#include "DefaultParameters.h"
+
 #include "qclcontext.h"
 
 /** \brief wlSimulator est la classe qui pilote l'animation dans les projets de SA.
@@ -42,9 +44,6 @@ public:
 
     /// \brief Associe un nouvel environnement.
     virtual void SetEnvironment(wlSimulationEnvironment *env);
-    /// \brief Définit un environnement OpenCl
-    virtual void setOpenClContext(QCLContext * openClContext=NULL,
-                                  QCLVector<float> * openClInput=NULL);
     /// \brief Enregistre un objet supplementaire.
     virtual void AddItem(wlAnimatedMesh *item);
     /// \brief Supprime tous les objets animes.
@@ -82,6 +81,8 @@ public slots:
 
     /// \brief Reinitialise l'animation.
     virtual void Reset();
+    /// \brief Replace les objets à leurs positions initiales
+    virtual void Restart();
     /// \brief Execute un pas de temps de l'animation.
     virtual void Step();
     /// \brief Lance l'animation.
