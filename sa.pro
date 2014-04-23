@@ -17,14 +17,18 @@ HEADERS += saProject.h wlCore.h saViewer.h wlQGLViewer.h wlAnimatedMesh.h wlMesh
     Poly6Kernel.h \
     ViscosityKernel.h \
     Particle.h \
-    SPHKernels.h
+    SPHKernels.h \
+    ProjectView.h \
+    Project.h
 SOURCES += sa.cxx saProject.cxx wlCore.cxx saViewer.cxx wlQGLViewer.cxx wlAnimatedMesh.cxx wlMesh.cxx wlAnimatedSphere.cxx wlSimulator.cxx wlCage.cxx wlGround.cxx wlSimulationEnvironment.cxx \
     ParticleSimulator.cpp \
     SPHKernel.cpp \
     SpikyKernel.cpp \
     Poly6Kernel.cpp \
     ViscosityKernel.cpp \
-    Particle.cpp
+    Particle.cpp \
+    ProjectView.cpp \
+    Project.cpp
 
 
   QT       += core
@@ -40,4 +44,7 @@ SOURCES += sa.cxx saProject.cxx wlCore.cxx saViewer.cxx wlQGLViewer.cxx wlAnimat
   LIBS += -L/usr/local/lib/opencl -lQtOpenCL -lOpenCL
   INCLUDEPATH += /usr/local/lib/opencl
 
-  TARGET = particules
+  TARGET = particules.out
+
+FORMS += \
+    MainWindow.ui

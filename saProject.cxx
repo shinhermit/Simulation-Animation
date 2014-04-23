@@ -61,8 +61,7 @@ saProject::saProject(QString title, QSize size, int debug, bool gpuMode)
     this->setWindowTitle(title);
 
     saViewer *viewer = new saViewer();
-//    viewer->setFixedSize(size);
-//    viewer->setAxisIsDrawn();
+    viewer->setFixedSize(size);
     viewer->show();
 
     unsigned int nbItems = 27;
@@ -124,8 +123,7 @@ void saProject::_setSimulator(saViewer *viewer, int debug)
 {
     wlSimulationEnvironment *env = new wlGround(debug);
 
-//    this->simulator = new wlSimulator(debug, viewer, env, &this->balls);
-    ParticleSimulator * ps = new ParticleSimulator(debug, viewer, env, &this->balls);
+    ParticleSimulator * ps = new ParticleSimulator(27, debug, viewer, env);
     ps->setSmoothingTolerance(10.);
     ps->setPressureToDensityGradientProportionnality(20.);
     this->simulator = ps;
@@ -159,18 +157,8 @@ void saProject::_createGUI(saViewer *viewer)
     //
     // Menus
     //
-    QMenu *file_menu = this->menuBar()->addMenu("&File");
-    QAction *openAct = new QAction("&Open file...", this);
-    openAct->setShortcut(QKeySequence(QString("Ctrl+F")));
-    openAct->setStatusTip("Charger un fichier de donnees");
-    connect(openAct, SIGNAL(triggered()), this, SLOT(Open()));
-    file_menu->addAction(openAct);
-    file_menu->addSeparator();
-    QAction *quitAct = new QAction("&Quit", this);
-    quitAct->setShortcut(QKeySequence(QString("Ctrl+Q")));
-    quitAct->setStatusTip("Quitter l'application");
-    connect(quitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
-    file_menu->addAction(quitAct);
+    _createMenus();
+
     //
     // Button bar
     //
@@ -183,89 +171,6 @@ void saProject::_createGUI(saViewer *viewer)
     Layout->setSpacing(LAYOUT_MARGIN);
     W->setLayout(Layout);
 
-    // la position initiale des balles
-//    for (int i=0 ; i<this->balls.size() ; i++) {
-//        QWidget *w = new QWidget;
-//        Layout->addWidget(w);
-//        QHBoxLayout *layout = new QHBoxLayout();
-//        w->setLayout(layout);
-//        {
-//            QLabel *l = new QLabel("Position initiale");
-//            layout->addWidget(l);
-//        }
-//        {
-//            QLabel *l = new QLabel("Px : ");
-//            l->setWhatsThis(QString::fromLocal8Bit("Composante X de la position initiale"));
-//            layout->addWidget(l);
-//            QLineEdit *le = new QLineEdit(QString::number(i==0 ? PX1 : PX2));
-//            layout->addWidget(le);
-//            le->setMaximumWidth(40);
-//            QObject::connect(le, SIGNAL(textChanged(QString)), this->balls[i], SLOT(SetPositionX(QString)));
-//        }
-//        {
-//            QLabel *l = new QLabel("Py : ");
-//            l->setWhatsThis(QString::fromLocal8Bit("Composante Y de la position initiale"));
-//            layout->addWidget(l);
-//            QLineEdit *le = new QLineEdit(QString::number(i==0 ? PY1 : PY2));
-//            layout->addWidget(le);
-//            le->setMaximumWidth(40);
-//            QObject::connect(le, SIGNAL(textChanged(QString)), this->balls[i], SLOT(SetPositionY(QString)));
-//        }
-//        {
-//            QLabel *l = new QLabel("Pz : ");
-//            l->setWhatsThis(QString::fromLocal8Bit("Composante Z de la position initiale"));
-//            layout->addWidget(l);
-//            QLineEdit *le = new QLineEdit(QString::number(i==0 ? PZ1 : PZ2));
-//            layout->addWidget(le);
-//            le->setMaximumWidth(40);
-//            QObject::connect(le, SIGNAL(textChanged(QString)), this->balls[i], SLOT(SetPositionZ(QString)));
-//        }
-//    }
-
-//    // la vitesse initiale des balles
-//    for (int i=0 ; i<this->balls.size() ; i++) {
-//        QWidget *w = new QWidget;
-//        Layout->addWidget(w);
-//        QHBoxLayout *layout = new QHBoxLayout();
-//        w->setLayout(layout);
-//        {
-//            QLabel *l = new QLabel("Vitesse initiale");
-//            layout->addWidget(l);
-//        }
-//        {
-//            QLabel *l = new QLabel("Vx : ");
-//            l->setWhatsThis(QString::fromLocal8Bit("Composante X de la vitesse initiale"));
-//            layout->addWidget(l);
-//            QLineEdit *le = new QLineEdit(QString::number(i==0 ? VX1 : VX2));
-//            layout->addWidget(le);
-//            QDoubleValidator *valid = new QDoubleValidator(-100.0, 100.0, 2, this);
-//            le->setValidator(valid);
-//            le->setMaximumWidth(40);
-//            QObject::connect(le, SIGNAL(textChanged(QString)), this->balls[i], SLOT(SetVelocityX(QString)));
-//        }
-//        {
-//            QLabel *l = new QLabel("Vy : ");
-//            l->setWhatsThis(QString::fromLocal8Bit("Composante Y de la vitesse initiale"));
-//            layout->addWidget(l);
-//            QLineEdit *le = new QLineEdit(QString::number(i==0 ? VY1 : VY2));
-//            layout->addWidget(le);
-//            QDoubleValidator *valid = new QDoubleValidator(-100.0, 100.0, 2, this);
-//            le->setValidator(valid);
-//            le->setMaximumWidth(40);
-//            QObject::connect(le, SIGNAL(textChanged(QString)), this->balls[i], SLOT(SetVelocityY(QString)));
-//        }
-//        {
-//            QLabel *l = new QLabel("Vz : ");
-//            l->setWhatsThis(QString::fromLocal8Bit("Composante Z de la vitesse initiale"));
-//            layout->addWidget(l);
-//            QLineEdit *le = new QLineEdit(QString::number(i==0 ? VZ1 : VZ2));
-//            layout->addWidget(le);
-//            QDoubleValidator *valid = new QDoubleValidator(-100.0, 100.0, 2, this);
-//            le->setValidator(valid);
-//            le->setMaximumWidth(40);
-//            QObject::connect(le, SIGNAL(textChanged(QString)), this->balls[i], SLOT(SetVelocityZ(QString)));
-//        }
-//    }
     // la gestion des collisions
     {
         QWidget *w = new QWidget;
@@ -380,6 +285,24 @@ void saProject::_createGUI(saViewer *viewer)
     this->show();
 }
 
+void saProject::_createMenus()
+{
+  QMenu *file_menu = this->menuBar()->addMenu("&File");
+
+  QAction *openAct = new QAction("&Open file...", this);
+  openAct->setShortcut(QKeySequence(QString("Ctrl+F")));
+  openAct->setStatusTip("Charger un fichier de donnees");
+  connect(openAct, SIGNAL(triggered()), this, SLOT(Open()));
+  file_menu->addAction(openAct);
+
+  file_menu->addSeparator();
+
+  QAction *quitAct = new QAction("&Quit", this);
+  quitAct->setShortcut(QKeySequence(QString("Ctrl+Q")));
+  quitAct->setStatusTip("Quitter l'application");
+  connect(quitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
+  file_menu->addAction(quitAct);
+}
 
 // Slot: choisis un fichier contenant une mesh au format OFF
 void

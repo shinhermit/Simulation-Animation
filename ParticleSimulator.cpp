@@ -1,11 +1,12 @@
 #include "ParticleSimulator.h"
 
-ParticleSimulator::ParticleSimulator(int debug, saViewer *viewer,
-                                     wlSimulationEnvironment *environment,
-                                     QVector<wlAnimatedMesh *> * items)
-    :wlSimulator(debug, viewer, environment, items)
+ParticleSimulator::ParticleSimulator(const unsigned int & nbParticles, int debug, saViewer *viewer,
+                                     wlSimulationEnvironment *environment)
+    :wlSimulator(debug, viewer, environment, new QVector<wlAnimatedMesh*>())
 {
     this->Clear();
+    _createParticles(nbParticles, debug);
+    std::cerr << "ParticleSimulator::ParticleSimulator: nbParticles: " << items.size() << std::endl;
 }
 
 void ParticleSimulator::Clear()
@@ -20,6 +21,56 @@ void ParticleSimulator::Clear()
 
     _openClContext = NULL;
     _openClInput = NULL;
+}
+
+void ParticleSimulator::_createParticles(const unsigned int & nbItems, const int & debug)
+{
+    Particle * particle;
+    float Xp, Yp, Zp, zOffset;
+    unsigned int index;
+
+    double itemsPerSide = ::pow(nbItems, 1./3);
+    float step = 3;
+    zOffset = 50;
+
+    for(unsigned int i=0; i < itemsPerSide; ++i)
+    {
+        Xp = i*step;
+        for(unsigned int j=0; j < itemsPerSide; ++j)
+        {
+            Yp = j*step;
+            for(unsigned int k=0; k < itemsPerSide; ++k)
+            {
+                Zp = k*step + zOffset;
+
+                particle = new Particle(this->items, debug, NULL, "sphere.off");
+                particle->SetPosition(Xp, Yp, Zp);
+                particle->SetVelocity(0, 0, 0);
+
+                // Problem: à ce niveau, _openClInput n'est pas encore défini
+                // (setOpenClContext pas encore appelée)
+                if(_gpuMode)
+                {
+                    index = i + j*itemsPerSide + k*itemsPerSide*itemsPerSide;
+                    QCLVector<float> & clInput = *_openClInput;
+                    clInput[index] = Xp;
+                    clInput[index+1] = Yp;
+                    clInput[index+2] = Zp;
+
+                    clInput[index+3] = 0;
+                    clInput[index+4] = 0;
+                    clInput[index+5] = 0;
+                }
+
+                particle->SetReaction(PURE_KINEMATIC);
+                particle->SetAttenuationCoefficientForPureKinematicReaction(0.8);
+                particle->Reset();
+
+                this->AddItem(particle);
+            }
+        }
+    }
+
 }
 
 bool ParticleSimulator::isGPUMode()const
@@ -47,7 +98,7 @@ float ParticleSimulator::getInitialDensity() const
     return this->_coeff_rho0;
 }
 
-void ParticleSimulator::setSmoothingTolerance(const float & coeff_d) throw(std::invalid_argument)
+void ParticleSimulator::setSmoothingTolerance(const double & coeff_d) throw(std::invalid_argument)
 {
     if(coeff_d <= 0)
         throw std::invalid_argument("ParticleSimulator::setPressureTolerance: negative of null value given for distance tolerance");
@@ -55,22 +106,32 @@ void ParticleSimulator::setSmoothingTolerance(const float & coeff_d) throw(std::
     this->_coeff_d = coeff_d;
 }
 
-void ParticleSimulator::setPressureToDensityGradientProportionnality(const float & coeff_k)
+void ParticleSimulator::setPressureToDensityGradientProportionnality(const double & coeff_k)
 {
     this->_coeff_k = coeff_k;
 }
 
-void ParticleSimulator::setDynamicViscosityConstant(const float & coeff_mu)
+void ParticleSimulator::setDynamicViscosityConstant(const double & coeff_mu)
 {
     this->_coeff_mu = coeff_mu;
 }
 
-void ParticleSimulator::setInitialDensity(const float & coeff_rho0) throw(std::invalid_argument)
+void ParticleSimulator::setInitialDensity(const double & coeff_rho0) throw(std::invalid_argument)
 {
     if(coeff_rho0 <= 0)
         throw std::invalid_argument("ParticleSimulator::setPressureTolerance: negative of null value given for density");
 
     this->_coeff_rho0 = coeff_rho0;
+}
+
+void ParticleSimulator::setParticlesMass(const double & mass) throw(std::invalid_argument)
+{
+    for(int i=0; i < items.size(); ++i)
+    {
+        Particle * particle = dynamic_cast<Particle*>(items[i]);
+
+        particle->setMass(mass);
+    }
 }
 
 void ParticleSimulator::setOpenClContext(QCLContext * openClContext,

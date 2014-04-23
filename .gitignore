@@ -1,3 +1,9 @@
 build
 *.pro.user
 *~
+*.o
+ui_*
+moc_*
+Makefile
+qrc_*
+*.out

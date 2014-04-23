@@ -109,6 +109,7 @@ private:
   void _configOpenCL(bool gpuMode, unsigned int nbItems);
 
   void _createGUI(saViewer *viewer);
+  void _createMenus();
 
 private slots:
   /// Slot : lit une nouvelle mesh dans un fichier.

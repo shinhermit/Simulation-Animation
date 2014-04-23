@@ -279,12 +279,7 @@ wlSimulator::ShowEntireMesh()
     center.push_back(ext[2] + size[1] / 2);
     center.push_back(ext[4] + size[2] / 2);
     float radius = (float)sqrt((double)(size[0] * size[0] + size[1] * size[1] + size[2] * size[2])) / 2;
-    /*
-  this->Print("scene extends: %lf -- %lf  %lf -- %lf  %lf -- %lf", ext[0], ext[1], ext[2], ext[3], ext[4], ext[5]);
-  this->Print("scene size: %lf %lf %lf", size[0], size[1], size[2]);
-  this->Print("scene center: %lf %lf %lf", center[0], center[1], center[2]);
-  this->Print("scene radius: %lf", radius);
-  */
+
     this->viewer->setSceneRadius(radius*2);
     this->viewer->setSceneCenter(qglviewer::Vec(center[0], center[1], 0));
     this->viewer->camera()->setRevolveAroundPoint(this->viewer->sceneCenter());
