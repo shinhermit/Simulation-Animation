@@ -48,7 +48,7 @@ void Particle::computeDensity(const SPHKernel & kernel, const float & refDensity
 
     myPos = this->getPosition();
 
-    for(unsigned int i=0; i < _everyone.size(); ++i)
+    for(unsigned int i=0; i < (unsigned int)_everyone.size(); ++i)
     {
         if(_everyone[i] != this)
         {
@@ -90,7 +90,7 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
 
     myPos = this->getPosition();
 
-    for(unsigned int i=0; i < _everyone.size(); ++i)
+    for(unsigned int i=0; i < (unsigned int)_everyone.size(); ++i)
     {
         if(_everyone[i] != this)
         {

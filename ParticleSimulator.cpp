@@ -146,17 +146,17 @@ void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
 
     _openClProgram = _openClContext->buildProgramFromSourceFile("./gpu_main.c");
 
-    if(!_openClProgram.isNull())
-        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL program build failed");
+//    if(!_openClProgram.isNull())
+//        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL program build failed");
 
     _openClDensityKernel = _openClProgram.createKernel("compute_density");
-    if(!_openClDensityKernel.isNull())
-        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL densityKernel creation failed");
+//    if(!_openClDensityKernel.isNull())
+//        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL densityKernel creation failed");
 
 
     _openClTranslationKernel = _openClProgram.createKernel("compute_translation");
-    if(!_openClDensityKernel.isNull())
-        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL translationKernel creation failed");
+//    if(!_openClDensityKernel.isNull())
+//        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL translationKernel creation failed");
 
     _openClDensityKernel.setGlobalWorkSize(_items.size());
     _openClTranslationKernel.setGlobalWorkSize(_items.size());
@@ -193,15 +193,18 @@ void ParticleSimulator::_gpuStep()
     float particleMass;
 
     particle = (!_items.empty()) ? dynamic_cast<Particle*>(_items[0]) : NULL;
-    particleMass = (particle != NULL) ? particle->getMass() : 0;
+    particleMass = (particle != NULL) ? particle->getMass() : 0.;
 
+    std::cerr << "ParticleSimulator::_gpuStep: cheval1" << std::endl;
     /*__global __read_write float * data, unsigned int nbItems,
                   float particleMass, float maxDist, float coeff_k, float refDensity*/
     _openClDensityKernel(openClInput, nbItems, particleMass, _coeff_d, _coeff_k, _coeff_rho0);
 
+    std::cerr << "ParticleSimulator::_gpuStep: cheval2" << std::endl;
     /*__global __read_write float * data, unsigned int * cstep, float timestep,
                   unsigned int nbItems, float particleMass, float maxDist, float coeff_mu*/
     _openClTranslationKernel(openClInput, _cstep, _timestep, nbItems, particleMass, _coeff_d, _coeff_mu);
+    std::cerr << "ParticleSimulator::_gpuStep: cheval3" << std::endl;
 
     for(unsigned int i = 0; i < nbItems; ++i)
     {

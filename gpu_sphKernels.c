@@ -1,4 +1,3 @@
-#include "gpu_sphKernels.h"
 
 /// R_ij must be of size 3
 float sph_poly6(float maxDist, float R_ij[])
@@ -73,7 +72,7 @@ void sph_spiky_gradient(float maxDist, float R_ij[], float res[])
 /// R_ij must be of size 3
 float sph_viscosity_laplacian(float maxDist, float R_ij[])
 {
-    float dist = std::sqrt(R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2]);
+    float dist = sqrt(R_ij[0]*R_ij[0] + R_ij[1]*R_ij[1] + R_ij[2]*R_ij[2]);
     float q = dist/maxDist;
 
     if(dist <= maxDist)

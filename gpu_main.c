@@ -1,6 +1,54 @@
-#include "gpu_sphKernels.h"
+float sph_poly6(float maxDist, float3 R_ij)
+{
+    float sqrDist = R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z;
+    float sqrMaxDist = maxDist*maxDist;
 
-__kernel void compute_density(__global __read_write float * data, unsigned int nbItems,
+    if(sqrDist <= sqrMaxDist && maxDist != 0.)
+    {
+        return pown(sqrMaxDist - sqrDist, 3) / (3.1415 * pown(maxDist, 8));
+    }
+
+    else
+        return 0.;
+}
+
+float3 sph_spiky_gradient(float maxDist, float3 R_ij)
+{
+  float3 res;
+  float coef;
+    float dist = sqrt(R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z);
+    float q = dist/maxDist;
+
+    res.x = res.y = res.z = 0.;
+
+    if(dist <= maxDist && maxDist != 0.)
+    {
+        coef = -30*pown(1-q, 2) / (3.1415*q*pown(maxDist, 4));
+
+
+        res.x = coef*R_ij.x;
+        res.y = coef*R_ij.y;
+        res.z = coef*R_ij.z;
+    }
+
+    return res;
+}
+
+float sph_viscosity_laplacian(float maxDist, float3 R_ij)
+{
+    float dist = sqrt(R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z);
+    float q = dist/maxDist;
+
+    if(dist <= maxDist && maxDist != 0.)
+    {
+        return 40*(1 - q) / (3.1415*pown(maxDist, 4));
+    }
+
+    else
+        return 0.;
+}
+
+__kernel void compute_density(__global float * data, unsigned int nbItems,
 			      float particleMass, float maxDist, float coeff_k, float refDensity)
 {
 
@@ -8,8 +56,8 @@ __kernel void compute_density(__global __read_write float * data, unsigned int n
   unsigned int myId = get_global_id(0);
 
   /***** Do the work *****/
-  float density = 0;
-  float R_ij[3];
+  float density = 0.;
+  float3 R_ij;
 
   unsigned int hisPosIndex;
   unsigned int hisVelIndex;
@@ -24,16 +72,16 @@ __kernel void compute_density(__global __read_write float * data, unsigned int n
 
   for(i=0; i < nbItems; ++i)
     {
-      hisPosIndex = i*8;;
+      hisPosIndex = i*8;
       hisVelIndex = hisPosIndex + 3;
       hisRhoIndex = hisVelIndex + 3;
       hisPresIndex = hisRhoIndex + 1;
 
       if(i != myId)
         {
-	  R_ij[0] = data[myPosIndex] - data[hisPosIndex];
-	  R_ij[1] = data[myPosIndex+1] - data[hisPosIndex+1];
-	  R_ij[2] = data[myPosIndex+2] - data[hisPosIndex+2];
+	  R_ij.x = data[myPosIndex] - data[hisPosIndex];
+	  R_ij.y = data[myPosIndex+1] - data[hisPosIndex+1];
+	  R_ij.z = data[myPosIndex+2] - data[hisPosIndex+2];
 
 	  density += particleMass * sph_poly6(maxDist, R_ij);
 	}
@@ -43,16 +91,16 @@ __kernel void compute_density(__global __read_write float * data, unsigned int n
   data[myPresIndex] = coeff_k*(density - refDensity);
 }
 
-__kernel void compute_translation(__global __read_write float * data, unsigned int cstep, float timestep,
+__kernel void compute_translation(__global float * data, unsigned int cstep, float timestep,
 				  unsigned int nbItems, float particleMass, float maxDist, float coeff_mu)
 {
   /***** Identify worker *****/
   unsigned int myId = get_global_id(0);
 
   /***** Do the work *****/
-  float R_ij[3];
-  float gradP[3], laplV[3], gradK[3];
-  float acc[3];
+  float3 R_ij;
+  float3 gradP, laplV, gradK;
+  float3 acc;
   float coeff;
 
   unsigned int hisPosIndex;
@@ -66,8 +114,8 @@ __kernel void compute_translation(__global __read_write float * data, unsigned i
   unsigned int myPresIndex = myRhoIndex + 1;
   unsigned int i;
 
-  gradP[0] = gradP[1] = gradP[2] = 0;
-  laplV[0] = laplV[1] = laplV[2] = 0;
+  gradP.x = gradP.y = gradP.z = 0;
+  laplV.x = laplV.y = laplV.z = 0;
 
   for(i=0; i < nbItems; ++i)
     {
@@ -78,68 +126,68 @@ __kernel void compute_translation(__global __read_write float * data, unsigned i
 	  hisRhoIndex = hisVelIndex + 3;
 	  hisPresIndex = hisRhoIndex + 1;
 
-	  R_ij[0] = data[myPosIndex] - data[hisPosIndex];
-	  R_ij[1] = data[myPosIndex+1] - data[hisPosIndex+1];
-	  R_ij[2] = data[myPosIndex+2] - data[hisPosIndex+2];
+	  R_ij.x = data[myPosIndex] - data[hisPosIndex];
+	  R_ij.y = data[myPosIndex+1] - data[hisPosIndex+1];
+	  R_ij.z = data[myPosIndex+2] - data[hisPosIndex+2];
 
 	  // Gradient de la pression
 	  coeff = 0;
 	  if(data[hisRhoIndex])
 	    coeff = 0.5 * particleMass * (data[myPresIndex] + data[hisPresIndex]) / data[hisRhoIndex];
 
-	  sph_spiky_gradient(maxDist, R_ij, gradK);
+	  gradK = sph_spiky_gradient(maxDist, R_ij);
 
-	  gradP[0] += coeff*gradK[0];
-	  gradP[1] += coeff*gradK[1];
-	  gradP[2] += coeff*gradK[2];
+	  gradP.x += coeff*gradK.x;
+	  gradP.y += coeff*gradK.y;
+	  gradP.z += coeff*gradK.z;
 
 	  //Laplacien de la vitesse
 	  coeff = 0;
 	  if(data[hisRhoIndex])
-	    coeff = other->getMass() * kernelV.laplacian(R_ij) / data[hisRhoIndex];
+	    coeff = particleMass * sph_viscosity_laplacian(maxDist, R_ij) / data[hisRhoIndex];
 
-	  laplV[0] += coeff*(data[myVelIndex] - data[hisVelIndex]);
-	  laplV[1] += coeff*(data[myVelIndex+1] - data[hisVelIndex+1]);
-	  laplV[2] += coeff*(data[myVelIndex+2] - data[hisVelIndex+2]);
+	  laplV.x += coeff*(data[myVelIndex] - data[hisVelIndex]);
+	  laplV.y += coeff*(data[myVelIndex+1] - data[hisVelIndex+1]);
+	  laplV.z += coeff*(data[myVelIndex+2] - data[hisVelIndex+2]);
 	}
     }
 
   //calcul de l'accélération et de la vitesse
   // The gravity
-  acc[0] = acc[1] = 0;
+  acc.x = acc.y = 0;
   if(data[myPosIndex+2] > 0.1)
     {
-      acc[2] = -9.8;
+      acc.z = -9.8;
     }
   else
     {
-      acc[2] = -9.8;
+      acc.z = -9.8;
       data[myVelIndex] = data[myVelIndex+1] = data[myVelIndex+2] = 0;
     }
 
   // The influences
   if(data[myRhoIndex])
     {
-      acc[0] += (coeff_mu*laplV[0] - gradP[0])/data[myRhoIndex];
-      acc[1] += (coeff_mu*laplV[1] - gradP[1])/data[myRhoIndex];
-      acc[2] += (coeff_mu*laplV[2] - gradP[2])/data[myRhoIndex];
+      acc.x += (coeff_mu*laplV.x - gradP.x)/data[myRhoIndex];
+      acc.y += (coeff_mu*laplV.y - gradP.y)/data[myRhoIndex];
+      acc.z += (coeff_mu*laplV.z - gradP.z)/data[myRhoIndex];
     }
 
   ++ cstep;
 
   //La vitesse
-  float v0[3] = {data[myVelIndex], data[myVelIndex+1], data[myVelIndex+2]}; //Save v_0
+  float3 v0 = (float3)(data[myVelIndex], data[myVelIndex+1], data[myVelIndex+2]); //Save v_0
 
-  data[myVelIndex] += acc[0]*timestep;
-  data[myVelIndex+1] += acc[1]*timestep;
-  data[myVelIndex+2] += acc[2]*timestep;
+  data[myVelIndex] += acc.x*timestep;
+  data[myVelIndex+1] += acc.y*timestep;
+  data[myVelIndex+2] += acc.z*timestep;
 
   //La translation
   // x = 1/2*a*t^2 + v_0*t + x_0
   // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
   float time = timestep * cstep;
   float time_p = time - timestep;
-  data[myPoslIndex] += 0.5*acc[0]*(time*time - time_p*time_p) + v0[0]*timestep;
-  data[myPoslIndex+1] += 0.5*acc[1]*(time*time - time_p*time_p) + v0[1]*timestep;
-  data[myPoslIndex+2] += 0.5*acc[2]*(time*time - time_p*time_p) + v0[2]*timestep;
+  data[myPosIndex] += 0.5*acc.x*(time*time - time_p*time_p) + v0.x*timestep;
+  data[myPosIndex+1] += 0.5*acc.y*(time*time - time_p*time_p) + v0.y*timestep;
+  data[myPosIndex+2] += 0.5*acc.z*(time*time - time_p*time_p) + v0.z*timestep;
 }
