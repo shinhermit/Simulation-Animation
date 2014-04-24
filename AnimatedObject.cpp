@@ -41,7 +41,12 @@ void AnimatedObject::setTimeStep(const float &  timestep)
 
 QVector<float> AnimatedObject::getPosition() const
 {
-    return _initPos + _tVec;
+    QVector<float> p;
+
+    p << _initPos[0] + _tVec[0]
+      << _initPos[1] + _tVec[1]
+      << _initPos[2] + _tVec[2];
+    return p;
 }
 
 float AnimatedObject::getTimeStep() const

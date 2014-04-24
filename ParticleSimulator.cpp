@@ -1,7 +1,7 @@
 #include "ParticleSimulator.h"
 
-ParticleSimulator::ParticleSimulator(const unsigned int & nbParticles, int debug, saViewer *viewer,
-                                     wlSimulationEnvironment *environment)
+ParticleSimulator::ParticleSimulator(const unsigned int & nbParticles, int debug, QGLViewer *viewer,
+                                     wlMesh *environment)
     :Simulator(debug, viewer, environment, new QVector<AnimatedObject*>())
 {
     _clear();
@@ -29,7 +29,7 @@ void ParticleSimulator::_createParticles(const unsigned int & nbItems, const int
     unsigned int index;
 
     double itemsPerSide = ::pow(nbItems, 1./3);
-    float step = 3;
+    float step = 1;
     zOffset = 50;
 
     for(unsigned int i=0; i < itemsPerSide; ++i)
@@ -131,12 +131,6 @@ void ParticleSimulator::setParticlesMass(const double & mass) throw(std::invalid
     }
 }
 
-void ParticleSimulator::reset()
-{
-    _clear();
-    Simulator::reset();
-}
-
 void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
                                          QCLVector<float> * openClInput)
 {
@@ -219,9 +213,18 @@ void ParticleSimulator::_cpuStep()
     }
 }
 
+void ParticleSimulator::reset()
+{
+    _clear();
+    Simulator::reset();
+
+    this->draw();
+    emit requestUpdateGL();
+}
+
 void ParticleSimulator::step()
 {
-    this->Trace("-> Step()");
+    this->Trace("-> step()");
 
     if(this->_gpuMode)
     {
@@ -238,8 +241,8 @@ void ParticleSimulator::step()
     if(_cstep > _nsteps)
         _timer->stop();
 
-    this->draw();
-    _viewer->updateGL();
+    this->Trace("<- step()");
 
-    this->Trace("<- Step()");
+    this->draw();
+    emit requestUpdateGL();
 }

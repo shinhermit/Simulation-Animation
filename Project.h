@@ -27,7 +27,7 @@ private:
 
     void _configOpenCL(const bool & gpuMode, const unsigned int & nbItems);
     void _setView();
-    void _setSimulator(const unsigned int & nbItems, saViewer *viewer, int debug);
+    void _setSimulator(const unsigned int & nbItems, QGLViewer *viewer, int debug);
 
 public:
     Project(const unsigned int & nbItems=DefaultParameters::NbParticles,

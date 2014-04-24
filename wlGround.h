@@ -14,7 +14,7 @@
 
 /** \brief wlGround represente un sol a z=0 pour le projet de SA.
 */
-class wlGround : public wlSimulationEnvironment
+class wlGround : public wlMesh
 {
   Q_OBJECT
 

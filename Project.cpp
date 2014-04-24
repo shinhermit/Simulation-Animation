@@ -10,6 +10,7 @@ Project::Project(const unsigned int & nbItems,
     _setSimulator(nbItems, _view->getGLViewer(), debug);
 
     _view->bindSimulator(*_simulator);
+    _view->update();
 
     this->Trace("<- Project");
 }
@@ -69,9 +70,9 @@ void Project::_setView()
     _view->show();
 }
 
-void Project::_setSimulator(const unsigned int & nbItems, saViewer *viewer, int debug)
+void Project::_setSimulator(const unsigned int & nbItems, QGLViewer *viewer, int debug)
 {
-    wlSimulationEnvironment *env = new wlGround(debug);
+    wlMesh * env = new wlGround(debug);
 
     _simulator = new ParticleSimulator(nbItems, debug, viewer, env);
     _simulator->setSmoothingTolerance(DefaultParameters::Coeff_d);

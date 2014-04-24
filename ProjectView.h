@@ -5,7 +5,6 @@
 
 #include <QMainWindow>
 
-#include "wlSimulator.h"
 #include "ui_MainWindow.h"
 #include "ParticleSimulator.h"
 #include "DefaultParameters.h"
@@ -25,17 +24,18 @@ public:
     ~ProjectView();
 
     void setAxisIsDrawn();
-    saViewer * getGLViewer();
+    QGLViewer * getGLViewer();
 
     void setSize(int w, int h);
 
     void bindSimulator(ParticleSimulator & simu);
 
-public slots:
-    void reset();
-
 signals:
     void requestReset();
+
+public slots:
+    void reset();
+    void update();
 };
 
 #endif // PROJECTVIEW_H

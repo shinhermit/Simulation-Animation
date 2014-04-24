@@ -20,7 +20,7 @@ void ProjectView::setAxisIsDrawn()
     _ui->viewer->setAxisIsDrawn();
 }
 
-saViewer *ProjectView::getGLViewer()
+QGLViewer *ProjectView::getGLViewer()
 {
     return _ui->viewer;
 }
@@ -74,6 +74,10 @@ void ProjectView::bindSimulator(ParticleSimulator & simu)
     QObject::connect(_ui->spinBox_mass, SIGNAL(valueChanged(double)), simulator, SLOT(setParticlesMass(const double &))); // Particles mass
     QObject::connect(_ui->spinBox_timestep, SIGNAL(valueChanged(double)), simulator, SLOT(setTimeStep(const double &))); // Time step
     QObject::connect(_ui->spinBox_nbSteps, SIGNAL(valueChanged(int)), simulator, SLOT(setNumberOfTimeSteps(int))); // Number of steps
+
+    //Updating the display
+    QObject::connect(simulator, SIGNAL(requestUpdateGL()), _ui->viewer, SLOT(updateGL())); // update view
+
 }
 
 void ProjectView::reset()
@@ -81,4 +85,9 @@ void ProjectView::reset()
     _setDefaultParameters();
 
     emit requestReset();
+}
+
+void ProjectView::update()
+{
+    _ui->viewer->updateGL();
 }

@@ -1,7 +1,7 @@
 #include "Simulator.h"
 
-Simulator::Simulator(int debug, saViewer *viewer,
-                         wlSimulationEnvironment *env,
+Simulator::Simulator(int debug, QGLViewer *viewer,
+                         wlMesh *env,
                          QVector<AnimatedObject*> * items)
     : wlCore(debug),
       _env(env),
@@ -12,8 +12,8 @@ Simulator::Simulator(int debug, saViewer *viewer,
 
     _clear();
 
-    if (this->hasEnvironment())
-        _env->SetViewer(_viewer);
+//    if (this->hasEnvironment())
+//        _env->SetViewer(_viewer);
 
     if (_viewer != NULL)
         connect(_viewer, SIGNAL(drawNeeded()), this, SLOT(draw()));
@@ -56,7 +56,7 @@ void Simulator::printSelf()
     }
 }
 
-void Simulator::setEnvironment(wlSimulationEnvironment *env)
+void Simulator::setEnvironment(wlMesh *env)
 {
     if (env != NULL)
     {
@@ -113,6 +113,9 @@ void Simulator::reset()
     {
         _items[i]->reset();
     }
+
+    this->draw();
+    emit requestUpdateGL();
 }
 
 void Simulator::restart()
@@ -121,6 +124,9 @@ void Simulator::restart()
     {
         _items[i]->reset();
     }
+
+    this->draw();
+    emit requestUpdateGL();
 }
 
 void Simulator::step()
@@ -137,9 +143,10 @@ void Simulator::step()
     if(_cstep > _nsteps)
         _timer->stop();
 
-    _viewer->updateGL();
-
     this->Trace("<- step()");
+
+    this->draw();
+    emit requestUpdateGL();
 }
 
 void Simulator::play()
@@ -207,10 +214,10 @@ void Simulator::_showEntireMesh()
     _viewer->camera()->setViewDirection(_viewer->sceneCenter() - _viewer->camera()->position());
     _viewer->camera()->setUpVector(qglviewer::Vec(0, 0, 1));
     _viewer->camera()->setFieldOfView((float)atan((double)0.2));
+    _viewer->camera()->showEntireScene();
 }
 
-void
-Simulator::draw()
+void Simulator::draw()
 {
     static int first=1;
 
@@ -218,28 +225,37 @@ Simulator::draw()
     glEnable(GL_DEPTH_TEST);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (this->hasEnvironment())
-    {
-        glPushMatrix();
-        glCallList(_env->GetList());
-        glPopMatrix();
-    }
+//    if (this->hasEnvironment())
+//    {
+//        glPushMatrix();
+//        glCallList(_env->GetList());
+//        glPopMatrix();
+//    }
+    glPushMatrix();
+    glColor3f(0., 0.6, 0.3);
+    glBegin(GL_TRIANGLES);
+        glVertex3f(50., 50., 0);
+        glVertex3f(-50., 50., 0);
+        glVertex3f(-50., -50., 0);
 
-    for (int i=0 ; i<_items.size() ; i++)
+        glVertex3f(-50., -50., 0);
+        glVertex3f(50., -50., 0);
+        glVertex3f(50., 50., 0);
+    glEnd();
+    glPopMatrix();
+
+    glPushMatrix();
+    glColor3f(0.6, 0.6, 0.6);
+    glPointSize(1.);
+    glBegin(GL_POINTS);
+    for (int i=0 ; i<_items.size() ; ++i)
     {
         QVector<float> p = _items[i]->getPosition();
-
-        glPushMatrix();
-
-        glColor3f(0.6, 0.6, 0.6);
-        glPointSize(1.);
-
-        glBegin(GL_POINTS);
-           glVertex3f(p[0], p[1], p[2]);
-        glEnd();
-
-        glPopMatrix();
+        //std::cerr << "Simulator::draw: drawing at potision (" << p[0] << "," << p[1] << "," << p[2] << ")" << std::endl;
+        glVertex3f(p[0], p[1], p[2]);
     }
+    glEnd();
+    glPopMatrix();
 
     glEnable(GL_LIGHT0);
     float light_position[] = { 0, -100, 100, 1.0 };

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>727</width>
-    <height>480</height>
+    <width>796</width>
+    <height>576</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -195,14 +195,13 @@
        </spacer>
       </item>
       <item>
-       <widget class="saViewer" name="viewer" native="true">
+       <widget class="QGLViewer" name="viewer" native="true">
         <property name="minimumSize">
          <size>
           <width>640</width>
           <height>480</height>
          </size>
         </property>
-        <zorder>verticalLayoutWidget</zorder>
        </widget>
       </item>
      </layout>
@@ -214,7 +213,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>727</width>
+     <width>796</width>
      <height>25</height>
     </rect>
    </property>
@@ -337,9 +336,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>saViewer</class>
+   <class>QGLViewer</class>
    <extends>QWidget</extends>
-   <header location="global">saViewer.h</header>
+   <header location="global">qglviewer.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

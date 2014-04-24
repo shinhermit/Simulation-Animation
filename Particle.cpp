@@ -171,14 +171,15 @@ void Particle::_displayBefore() const
 
 void Particle::_displayAfter(const QVector<float> & acc) const
 {
+    QVector<float> p = this->getPosition();
+
     std::cerr << "Particle::computeVelocity: this->timestep is " << _timestep << std::endl;
     std::cerr << "Particle::computeVelocity: computed acceleration is ("
               << acc[0] << ", " << acc[1] << ", " << acc[2] << ")" << std::endl;
     std::cerr << "Particle::computeVelocity: velocity after computation is ("
               << _cvel[0] << ", " << _cvel[1] << ", " << _cvel[2] << ")" << std::endl;
     std::cerr << "Particle::computeVelocity: position after computation is ("
-              << this->getPosition()[0] << ", " << this->getPosition()[1] << ", "
-              << this->getPosition()[2] << ")" << std::endl;
+              << p[0] << ", " << p[1] << ", " << p[2] << ")" << std::endl;
     std::cerr << std::endl << std::endl;
 }
 

@@ -13,11 +13,12 @@ class ParticleSimulator : public Simulator
     Q_OBJECT
 
 public:
-    ParticleSimulator(const unsigned int & nbParticles=DefaultParameters::NbParticles, int debug=0, saViewer *viewer=NULL,
-                      wlSimulationEnvironment *environment=NULL);
+    ParticleSimulator(const unsigned int & nbParticles=DefaultParameters::NbParticles, int debug=0,
+                      QGLViewer *viewer=NULL, wlMesh *environment=NULL);
 
     /// \brief Fournit le context pour un calcul en GPU et active le mode de calcul parallèle en GPU
     virtual void setOpenClContext(QCLContext * _openClContext=NULL, QCLVector<float> * _openClInput=NULL);
+
 
 public slots:
     /// \brief Active/désactive le mode de calcul parallèle en GPU. Exception si activation et context GPU non défini (setOpenClContext).
