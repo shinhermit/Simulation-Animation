@@ -52,5 +52,4 @@ float ViscosityKernel::laplacian(const QVector<float> & R_ij)const
 
     else
         return 0;
-
 }

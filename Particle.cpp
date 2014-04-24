@@ -48,7 +48,7 @@ void Particle::computeDensity(const SPHKernel & kernel, const float & refDensity
 
     myPos = this->getPosition();
 
-    for(int i=0; i < _everyone.size(); ++i)
+    for(unsigned int i=0; i < _everyone.size(); ++i)
     {
         if(_everyone[i] != this)
         {
@@ -65,19 +65,22 @@ void Particle::computeDensity(const SPHKernel & kernel, const float & refDensity
         }
     }
 
-    this->_density = (density <= 0.) ? 1. : density; // Pour les tests uniquement, résoudre plus tard
+//    this->_density = (density <= 0.) ? .000001 : density; // Pour les tests uniquement, résoudre plus tard
+    this->_density = density;
     this->_pressure = coeff_k*(density - refDensity);
-
 }
 
 // !!! A vérifier: les division par density (density != 0 ?)
+// If other's particle density is null, then we are not in this particle influence distance,
+// because in that, the density of this other particle would have at least included our influence
+// and thus could not have been null.
 void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & kernelV, const float & coeff_mu)
 {
     Particle * other;
     QVector<float> R_ij;
     QVector<float> gradP, laplV;
     QVector<float> gradK;
-    QVector<float> acc, gravity;
+    QVector<float> acc;
     QVector<float> velOther;
     QVector<float> myPos, hisPos;
     float coeff;
@@ -87,20 +90,24 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
 
     myPos = this->getPosition();
 
-    for(int i=0; i < _everyone.size(); ++i)
+    for(unsigned int i=0; i < _everyone.size(); ++i)
     {
         if(_everyone[i] != this)
         {
             other = dynamic_cast<Particle*>(_everyone[i]);
             if(other)
             {
+                float otherDensity = other->getDensity();
+
                 hisPos = other->getPosition();
                 R_ij << myPos[0] - hisPos[0]
                      << myPos[1] - hisPos[1]
                      << myPos[2] - hisPos[2];
 
                 // Gradient de la pression
-                coeff = 0.5 * other->getMass() * (this->_pressure + other->getPressure()) / other->getDensity();
+                coeff = 0;
+                if(otherDensity != 0)
+                    coeff = 0.5 * other->getMass() * (this->_pressure + other->getPressure()) / otherDensity;
                 gradK = kernelP.gradient(R_ij);
 
                 gradP[0] += coeff*gradK[0];
@@ -108,7 +115,9 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
                 gradP[2] += coeff*gradK[2];
 
                 //Laplacien de la vitesse
-                coeff = other->getMass() * kernelV.laplacian(R_ij) / other->getDensity();
+                coeff = 0;
+                if(otherDensity)
+                    coeff = other->getMass() * kernelV.laplacian(R_ij) / otherDensity;
                 velOther = other->getVelocity();
 
                 laplV[0] += coeff*(velOther[0] - _cvel[0]);
@@ -121,19 +130,24 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
 //    _displayBefore();
 
     //calcul de l'accélération et de la vitesse
+    // The gravity
     if(this->getPosition()[2] > 0.1)
     {
-        gravity << 0 << 0 << -9.8;
+        acc << 0 << 0 << -9.8;
     }
     else
     {
-        gravity << 0 << 0 << 0;
+        acc << 0 << 0 << 0;
         _cvel.fill(0);
     }
 
-    acc << gravity[0] + (coeff_mu*laplV[0] - gradP[0])/this->getDensity()
-        << gravity[1] + (coeff_mu*laplV[1] - gradP[1])/this->getDensity()
-        << gravity[2] + (coeff_mu*laplV[2] - gradP[2])/this->getDensity();
+    // The influences
+    if(_density)
+    {
+        acc[0] += (coeff_mu*laplV[0] - gradP[0])/_density;
+        acc[1] += (coeff_mu*laplV[1] - gradP[1])/_density;
+        acc[2] += (coeff_mu*laplV[2] - gradP[2])/_density;
+    }
 
     ++ _cstep;
 
@@ -174,6 +188,8 @@ void Particle::_displayAfter(const QVector<float> & acc) const
     QVector<float> p = this->getPosition();
 
     std::cerr << "Particle::computeVelocity: this->timestep is " << _timestep << std::endl;
+    std::cerr << "Particle::computeVelocity: density after computation is " << _density << std::endl;
+    std::cerr << "Particle::computeVelocity: pressure after computation is " << _pressure << std::endl;
     std::cerr << "Particle::computeVelocity: computed acceleration is ("
               << acc[0] << ", " << acc[1] << ", " << acc[2] << ")" << std::endl;
     std::cerr << "Particle::computeVelocity: velocity after computation is ("
@@ -185,6 +201,16 @@ void Particle::_displayAfter(const QVector<float> & acc) const
 
 void Particle::step()
 {}
+
+void Particle::setDendity(const float &density)
+{
+    _density = density;
+}
+
+void Particle::setPressure(const float &pressure)
+{
+    _pressure = pressure;
+}
 
 void Particle::reset()
 {

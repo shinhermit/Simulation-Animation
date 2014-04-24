@@ -27,9 +27,8 @@ main(int argc, char *argv[])
   // l'application Qt
   QApplication app(argc, argv);
 
-  Project * project = new Project(nbItems, debug);
+  Project * project = new Project(nbItems, debug, gpuMode);
   project->setViewSize(size[0], size[1]);
-  project->setGPUMode(gpuMode);
   project->show();
 
   return app.exec();

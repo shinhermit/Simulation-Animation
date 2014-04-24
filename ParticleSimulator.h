@@ -13,12 +13,13 @@ class ParticleSimulator : public Simulator
     Q_OBJECT
 
 public:
-    ParticleSimulator(const unsigned int & nbParticles=DefaultParameters::NbParticles, int debug=0,
-                      QGLViewer *viewer=NULL, wlMesh *environment=NULL);
+    ParticleSimulator(int debug=0, QGLViewer *viewer=NULL, wlMesh *environment=NULL);
 
     /// \brief Fournit le context pour un calcul en GPU et active le mode de calcul parallèle en GPU
-    virtual void setOpenClContext(QCLContext * _openClContext=NULL, QCLVector<float> * _openClInput=NULL);
+    virtual void setOpenClContext(QCLContext * _openClContext=NULL, QCLVector<float> * _openClInput=NULL)
+        throw(std::runtime_error);
 
+    virtual void createParticles(const unsigned int & nbItems, const int & debug);
 
 public slots:
     /// \brief Active/désactive le mode de calcul parallèle en GPU. Exception si activation et context GPU non défini (setOpenClContext).
@@ -74,7 +75,8 @@ protected:
     QCLVector<float> * _openClInput;
 
     QCLProgram _openClProgram;
-    QCLKernel _openClKernel;
+    QCLKernel _openClDensityKernel;
+    QCLKernel _openClTranslationKernel;
 
     //***** Constantes (paramètres) des équations de Navier-Stokes ******
     // Distance maximale d'influence entre deux particules
@@ -90,7 +92,6 @@ protected:
     virtual void _clear();
 
 private:
-    void _createParticles(const unsigned int & nbItems, const int & debug);
     void _cpuStep();
     void _gpuStep();
 };

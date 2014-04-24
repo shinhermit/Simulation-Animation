@@ -30,14 +30,18 @@ public:
     virtual void setInitialVelocity(const float & vX, const float & vY, const float & vZ);
     /// \brief Definit la vitesse instantanee de la mesh.
     virtual void setVelocity(const float & vX, const float & vY, const float & vZ);
+    /// \brief Incrémente la compteur local de pas de temps. Utile après un retour de calcul en GPU.
+    virtual void newStep();
 
     /// \brief Renvoie la vitesse actuelle du centre de gravite de la mesh au format (<x>, <y>, <z>).
     virtual QVector<float> getVelocity()const;
 
     /// \brief Obtient la position courante du mesh, wich is initial position plus translation
     virtual QVector<float> getPosition()const;
-    /// \brief Obtient la position courante du mesh, wich is initial position plus translation
+    /// \brief Obtient le pas de temps de la simulation
     virtual float getTimeStep()const;
+    /// \brief Obtient le pas de temps de la simulation
+    virtual float getCurrentStep()const;
 
     /// Imprime le contenu de la mesh a la resolution courante : coordonnees des sommets, aretes et faces.
     virtual void printSelf();

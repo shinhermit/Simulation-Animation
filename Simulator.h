@@ -70,9 +70,9 @@ protected:
     // la duree d'un pas de temps de la simulation
     float _timestep;
     // le nombre de pas de temps de la simulation
-    int _nsteps;
+    unsigned int _nsteps;
     // le pas de temps courant
-    int _cstep;
+    unsigned int _cstep;
     // le timer pour le temps reel
     QTimer * _timer;
 

@@ -54,6 +54,11 @@ float AnimatedObject::getTimeStep() const
     return _timestep;
 }
 
+float AnimatedObject::getCurrentStep() const
+{
+    return _cstep;
+}
+
 QVector<float> AnimatedObject::getVelocity() const
 {
     return _cvel;
@@ -100,6 +105,11 @@ void AnimatedObject::setVelocity(const float & vX, const float & vY, const float
     _cvel[0] = vX;
     _cvel[1] = vY;
     _cvel[2] = vZ;
+}
+
+void AnimatedObject::newStep()
+{
+    ++ _cstep;
 }
 
 void AnimatedObject::reset()

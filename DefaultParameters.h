@@ -5,6 +5,7 @@ class DefaultParameters
 {
 public:
     static const float Gravity;
+    static const short OCLOffset;
     static const int WindowSize[2];
 
     static const int NbSteps;

@@ -49,17 +49,18 @@ void Project::show()
 void Project::_configOpenCL(const bool & gpuMode, const unsigned int & nbItems)
 {
     _gpuMode = gpuMode;
-    unsigned int kinSize = 6*nbItems; //OpenCL: taille du tableau des valeurs cinématiques
+     //OpenCL: taille du tableau des valeurs cinématiques
+    unsigned int kinSize = DefaultParameters::OCLOffset * nbItems;
 
     if(_gpuMode)
     {
-        if (!this->_openClContext.create())
+        if (!_openClContext.create())
         {
             std::cerr << "Could not create OpenCL context for the GPU\n" << std::endl;
-            throw std::runtime_error("saProject::saProject: Could not create OpenCL context for the GPU\n");
+            throw std::runtime_error("Project::_configOpenCL: Could not create OpenCL context for the GPU\n");
         }
 
-        this->_openClInput = this->_openClContext.createVector<float>(kinSize);
+        _openClInput = _openClContext.createVector<float>(kinSize);
     }
 }
 
@@ -70,16 +71,18 @@ void Project::_setView()
     _view->show();
 }
 
-void Project::_setSimulator(const unsigned int & nbItems, QGLViewer *viewer, int debug)
+void Project::_setSimulator(const unsigned int & nbItems, QGLViewer *viewer, const int & debug)
 {
     wlMesh * env = new wlGround(debug);
 
-    _simulator = new ParticleSimulator(nbItems, debug, viewer, env);
+    _simulator = new ParticleSimulator(debug, viewer, env);
     _simulator->setSmoothingTolerance(DefaultParameters::Coeff_d);
     _simulator->setPressureToDensityGradientProportionnality(DefaultParameters::Coeff_k);
 
-    if(this->_gpuMode)
+    if(_gpuMode)
     {
-        _simulator->setOpenClContext(&this->_openClContext, &this->_openClInput);
+        _simulator->setOpenClContext(&_openClContext, &_openClInput);
     }
+
+    _simulator->createParticles(nbItems, debug);
 }

@@ -1,6 +1,7 @@
 #include "DefaultParameters.h"
 
 const float DefaultParameters::Gravity = 9.8;
+const short DefaultParameters::OCLOffset = 8;
 
 const int DefaultParameters::WindowSize[2] = {800, 700};
 const int DefaultParameters::NbSteps = 200;

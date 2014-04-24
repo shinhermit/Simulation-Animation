@@ -22,12 +22,12 @@ private:
     //Pour transmettre les données au GPU
     // Vecteur de positions et vitesses
     // chaque particule est représentée par
-    // 6 valeurs contigues <px,py,pz,vx,vy,vz>
+    // 8 valeurs contigues <px,py,pz, vx,vy,vz, density,pressure>
     QCLVector<float> _openClInput;
 
     void _configOpenCL(const bool & gpuMode, const unsigned int & nbItems);
     void _setView();
-    void _setSimulator(const unsigned int & nbItems, QGLViewer *viewer, int debug);
+    void _setSimulator(const unsigned int & nbItems, QGLViewer *viewer, const int & debug);
 
 public:
     Project(const unsigned int & nbItems=DefaultParameters::NbParticles,

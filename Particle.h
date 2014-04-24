@@ -30,6 +30,10 @@ public slots:
     virtual void reset();
     /// \brief On redéfinit cette méthode pour la désactiver.
     virtual void step();
+    /// \brief Définit la densité de la particule. Utile pour la mise à jour après calcul en GPU
+    virtual void setDendity(const float & density);
+    /// \brief Définit la densité de la particule. Utile pour la mise à jour après calcul en GPU
+    virtual void setPressure(const float & pressure);
 
     virtual void computeDensity(const SPHKernel & kernel, const float & refDensity, const float & coeff_k);
 

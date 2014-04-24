@@ -1,11 +1,9 @@
 #include "ParticleSimulator.h"
 
-ParticleSimulator::ParticleSimulator(const unsigned int & nbParticles, int debug, QGLViewer *viewer,
-                                     wlMesh *environment)
+ParticleSimulator::ParticleSimulator(int debug, QGLViewer *viewer, wlMesh *environment)
     :Simulator(debug, viewer, environment, new QVector<AnimatedObject*>())
 {
     _clear();
-    _createParticles(nbParticles, debug);
 }
 
 void ParticleSimulator::_clear()
@@ -22,7 +20,7 @@ void ParticleSimulator::_clear()
     _openClInput = NULL;
 }
 
-void ParticleSimulator::_createParticles(const unsigned int & nbItems, const int & debug)
+void ParticleSimulator::createParticles(const unsigned int & nbItems, const int & debug)
 {
     Particle * particle;
     float Xp, Yp, Zp, zOffset;
@@ -46,19 +44,26 @@ void ParticleSimulator::_createParticles(const unsigned int & nbItems, const int
                 particle->setInitialPosition(Xp, Yp, Zp);
                 particle->setInitialVelocity(0, 0, 0);
 
-                // Problem: à ce niveau, _openClInput n'est pas encore défini
-                // (setOpenClContext pas encore appelée)
                 if(_gpuMode)
                 {
-                    index = i + j*itemsPerSide + k*itemsPerSide*itemsPerSide;
                     QCLVector<float> & clInput = *_openClInput;
+
+                    index = k + j*itemsPerSide + i*itemsPerSide*itemsPerSide;
+                    index *= DefaultParameters::OCLOffset;
+
+                    // Position
                     clInput[index] = Xp;
                     clInput[index+1] = Yp;
                     clInput[index+2] = Zp;
 
+                    // Velocity
                     clInput[index+3] = 0;
                     clInput[index+4] = 0;
                     clInput[index+5] = 0;
+
+                    //Density and pressure
+                    clInput[index+6] = 0;
+                    clInput[index+7] = 0;
                 }
 
                 particle->reset();
@@ -123,7 +128,7 @@ void ParticleSimulator::setInitialDensity(const double & coeff_rho0) throw(std::
 
 void ParticleSimulator::setParticlesMass(const double & mass) throw(std::invalid_argument)
 {
-    for(int i=0; i < _items.size(); ++i)
+    for(unsigned int i=0; i < (unsigned int)_items.size(); ++i)
     {
         Particle * particle = dynamic_cast<Particle*>(_items[i]);
 
@@ -132,16 +137,29 @@ void ParticleSimulator::setParticlesMass(const double & mass) throw(std::invalid
 }
 
 void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
-                                         QCLVector<float> * openClInput)
+                                         QCLVector<float> * openClInput) throw(std::runtime_error)
 {
     _gpuMode = true;
 
     _openClContext = openClContext;
     _openClInput = openClInput;
 
-    _openClProgram = _openClContext->buildProgramFromSourceFile("./particules.c");
-    _openClKernel = _openClProgram.createKernel("particules");
-    _openClKernel.setGlobalWorkSize(_items.size());
+    _openClProgram = _openClContext->buildProgramFromSourceFile("./gpu_main.c");
+
+    if(!_openClProgram.isNull())
+        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL program build failed");
+
+    _openClDensityKernel = _openClProgram.createKernel("compute_density");
+    if(!_openClDensityKernel.isNull())
+        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL densityKernel creation failed");
+
+
+    _openClTranslationKernel = _openClProgram.createKernel("compute_translation");
+    if(!_openClDensityKernel.isNull())
+        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL translationKernel creation failed");
+
+    _openClDensityKernel.setGlobalWorkSize(_items.size());
+    _openClTranslationKernel.setGlobalWorkSize(_items.size());
 }
 
 void ParticleSimulator::setGPUMode(const bool & gpuMode) throw(std::logic_error)
@@ -168,15 +186,37 @@ void ParticleSimulator::printSelf()
 
 void ParticleSimulator::_gpuStep()
 {
+    Particle * particle;
+    int index;
     QCLVector<float> & openClInput = *_openClInput;
+    unsigned int nbItems = (unsigned int)_items.size();
+    float particleMass;
 
-    _openClKernel(openClInput, (float)_timestep);
+    particle = (!_items.empty()) ? dynamic_cast<Particle*>(_items[0]) : NULL;
+    particleMass = (particle != NULL) ? particle->getMass() : 0;
 
-    for(int i = 0; i < _items.size(); ++i)
+    /*__global __read_write float * data, unsigned int nbItems,
+                  float particleMass, float maxDist, float coeff_k, float refDensity*/
+    _openClDensityKernel(openClInput, nbItems, particleMass, _coeff_d, _coeff_k, _coeff_rho0);
+
+    /*__global __read_write float * data, unsigned int * cstep, float timestep,
+                  unsigned int nbItems, float particleMass, float maxDist, float coeff_mu*/
+    _openClTranslationKernel(openClInput, _cstep, _timestep, nbItems, particleMass, _coeff_d, _coeff_mu);
+
+    for(unsigned int i = 0; i < nbItems; ++i)
     {
-        int index = i*6;
-        _items[i]->setPosition(openClInput[index], openClInput[index+1], openClInput[index+2]);
-        _items[i]->setVelocity(openClInput[index+3], openClInput[index+4], openClInput[index+5]);
+        particle = dynamic_cast<Particle*>(_items[i]);
+
+        if(particle)
+        {
+            index = i * DefaultParameters::OCLOffset;
+
+            particle->newStep();
+            particle->setPosition(openClInput[index], openClInput[index+1], openClInput[index+2]);
+            particle->setVelocity(openClInput[index+3], openClInput[index+4], openClInput[index+5]);
+            particle->setDendity(openClInput[index+6]);
+            particle->setPressure(openClInput[index+7]);
+        }
     }
 }
 
@@ -190,7 +230,7 @@ void ParticleSimulator::_cpuStep()
     Particle * particle;
 
     //Compute densities first
-    for(int i=0; i < _items.size(); ++i)
+    for(unsigned int i=0; i < (unsigned int)_items.size(); ++i)
     {
         particle = dynamic_cast<Particle*>(_items[i]);
 
@@ -202,7 +242,7 @@ void ParticleSimulator::_cpuStep()
     }
 
     //compute velocities now
-    for(int i=0; i < _items.size(); ++i)
+    for(unsigned int i=0; i < (unsigned int)_items.size(); ++i)
     {
         particle = dynamic_cast<Particle*>(_items[i]);
 
