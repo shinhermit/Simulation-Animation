@@ -144,19 +144,12 @@ void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
     _openClContext = openClContext;
     _openClInput = openClInput;
 
-    _openClProgram = _openClContext->buildProgramFromSourceFile("./gpu_main.c");
+    QCLProgram progDensity, progTranslation;
+    progDensity = _openClContext->buildProgramFromSourceFile("./gpu_compute_density.c");
+    progTranslation = _openClContext->buildProgramFromSourceFile("./gpu_compute_translation.c");
 
-//    if(!_openClProgram.isNull())
-//        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL program build failed");
-
-    _openClDensityKernel = _openClProgram.createKernel("compute_density");
-//    if(!_openClDensityKernel.isNull())
-//        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL densityKernel creation failed");
-
-
-    _openClTranslationKernel = _openClProgram.createKernel("compute_translation");
-//    if(!_openClDensityKernel.isNull())
-//        throw std::runtime_error("ParticleSimulator::setOpenClContext: OpenCL translationKernel creation failed");
+    _openClDensityKernel = progDensity.createKernel("compute_density");
+    _openClTranslationKernel = progTranslation.createKernel("compute_translation");
 
     _openClDensityKernel.setGlobalWorkSize(_items.size());
     _openClTranslationKernel.setGlobalWorkSize(_items.size());
@@ -165,6 +158,27 @@ void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
     _openClDensityKernel.setLocalWorkSize(1);
     _openClTranslationKernel.setLocalWorkSize(1);
 }
+
+//void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
+//                                         QCLVector<float> * openClInput) throw(std::runtime_error)
+//{
+//    _gpuMode = true;
+
+//    _openClContext = openClContext;
+//    _openClInput = openClInput;
+
+//    _openClProgram = _openClContext->buildProgramFromSourceFile("./gpu_main.c");
+
+//    _openClDensityKernel = _openClProgram.createKernel("compute_density");
+//    _openClTranslationKernel = _openClProgram.createKernel("compute_translation");
+
+//    _openClDensityKernel.setGlobalWorkSize(_items.size());
+//    _openClTranslationKernel.setGlobalWorkSize(_items.size());
+
+//    // Problem is not set: Floating point exception
+//    _openClDensityKernel.setLocalWorkSize(1);
+//    _openClTranslationKernel.setLocalWorkSize(1);
+//}
 
 void ParticleSimulator::setGPUMode(const bool & gpuMode) throw(std::logic_error)
 {
@@ -268,8 +282,6 @@ void ParticleSimulator::reset()
 
 void ParticleSimulator::step()
 {
-    this->Trace("-> step()");
-
     if(this->_gpuMode)
     {
         _gpuStep();
@@ -284,8 +296,6 @@ void ParticleSimulator::step()
 
     if(_cstep > _nsteps)
         _timer->stop();
-
-    this->Trace("<- step()");
 
     this->draw();
     emit requestUpdateGL();
