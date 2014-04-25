@@ -120,9 +120,9 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
                     coeff = other->getMass() * kernelV.laplacian(R_ij) / otherDensity;
                 velOther = other->getVelocity();
 
-                laplV[0] += coeff*(velOther[0] - _cvel[0]);
-                laplV[1] += coeff*(velOther[1] - _cvel[1]);
-                laplV[2] += coeff*(velOther[2] - _cvel[2]);
+                laplV[0] += coeff*(velOther[0] - _vel[0]);
+                laplV[1] += coeff*(velOther[1] - _vel[1]);
+                laplV[2] += coeff*(velOther[2] - _vel[2]);
             }
         }
     }
@@ -138,7 +138,7 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
     else
     {
         acc << 0 << 0 << 0;
-        _cvel.fill(0);
+        _vel.fill(0);
     }
 
     // The influences
@@ -149,19 +149,19 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
         acc[2] += (coeff_mu*laplV[2] - gradP[2])/_density;
     }
 
-    ++ _cstep;
+    ++ _step;
 
     //La vitesse
-    QVector<float> v0 = _cvel; //Save v_0
+    QVector<float> v0 = _vel; //Save v_0
 
-    _cvel[0] += acc[0]*_timestep;
-    _cvel[1] += acc[1]*_timestep;
-    _cvel[2] += acc[2]*_timestep;
+    _vel[0] += acc[0]*_timestep;
+    _vel[1] += acc[1]*_timestep;
+    _vel[2] += acc[2]*_timestep;
 
     //La translation
     // x = 1/2*a*t^2 + v_0*t + x_0
     // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
-    float time = _timestep * _cstep;
+    float time = _timestep * _step;
     float time_p = time - _timestep;
     _tVec[0] += 0.5*acc[0]*(time*time - time_p*time_p) + v0[0]*_timestep;
     _tVec[1] += 0.5*acc[1]*(time*time - time_p*time_p) + v0[1]*_timestep;
@@ -173,10 +173,18 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
     this->Modified("DisplayList");
 }
 
+void Particle::printSelf() const
+{
+    AnimatedObject::printSelf();
+
+    this->Print("Density : %.2f", _density);
+    this->Print("Pressure: %.2f", _pressure);
+}
+
 void Particle::_displayBefore() const
 {
     std::cerr << "Particle::computeVelocity: velocity before computation is ("
-              << _cvel[0] << ", " << _cvel[1] << ", " << _cvel[2] << ")" << std::endl;
+              << _vel[0] << ", " << _vel[1] << ", " << _vel[2] << ")" << std::endl;
     std::cerr << "Particle::computeVelocity: position before computation is ("
               << this->getPosition()[0] << ", " << this->getPosition()[1] << ", "
               << this->getPosition()[2] << ")" << std::endl;
@@ -193,7 +201,7 @@ void Particle::_displayAfter(const QVector<float> & acc) const
     std::cerr << "Particle::computeVelocity: computed acceleration is ("
               << acc[0] << ", " << acc[1] << ", " << acc[2] << ")" << std::endl;
     std::cerr << "Particle::computeVelocity: velocity after computation is ("
-              << _cvel[0] << ", " << _cvel[1] << ", " << _cvel[2] << ")" << std::endl;
+              << _vel[0] << ", " << _vel[1] << ", " << _vel[2] << ")" << std::endl;
     std::cerr << "Particle::computeVelocity: position after computation is ("
               << p[0] << ", " << p[1] << ", " << p[2] << ")" << std::endl;
     std::cerr << std::endl << std::endl;

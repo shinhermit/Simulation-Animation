@@ -13,43 +13,43 @@ class Particle : public AnimatedObject
 public:
     Particle(const QVector<AnimatedObject*> & everyone, int debug=0);
 
-    /// \brief Definit la masse de la mesh.
+    /// \brief Defines the mass of the particle
     virtual void setMass(const float & mass) throw(std::invalid_argument);
 
-    /// \brief Retourne la masse de la particule
+    /// \brief Returns the mass of the particle
     virtual float getMass()const;
-
-    /// \brief Retourne la pression de la particule
+    /// \brief returns the density of the particle
     virtual float getDensity()const;
-
-    /// \brief Retourne la pression de la particule
+    /// \brief Returns the pressure on the particle
     virtual float getPressure()const;
 
 public slots:
-    /// \brief Ramene l'objet dans sa configuration initiale.
-    virtual void reset();
-    /// \brief On redéfinit cette méthode pour la désactiver.
-    virtual void step();
-    /// \brief Définit la densité de la particule. Utile pour la mise à jour après calcul en GPU
+    /// \brief Defines the density of the particle. Useful for the update after a GPU computation
     virtual void setDendity(const float & density);
-    /// \brief Définit la densité de la particule. Utile pour la mise à jour après calcul en GPU
+    /// \brief Defines the pressure of the particle. Useful for the update after a GPU computation
     virtual void setPressure(const float & pressure);
-
+    /// \brief Computes the SPH for the density (and thus the pressure) of the particle
     virtual void computeDensity(const SPHKernel & kernel, const float & refDensity, const float & coeff_k);
-
+    /// \brief Computes the SPH for position.
     virtual void computeTranslation(const SPHKernel & kernelP, const SPHKernel & kernelV, const float & coeff_mu);
 
+    /// \reimp
+    virtual void reset();
+    /// \reimp
+    virtual void step();
+
+    /// \reimp
+    virtual void printSelf()const;
+
 protected:
-    float _mass;
-    float _density;
-    float _pressure;
+    float _mass; /*!< The mass of the particle */
+    float _density; /*!< The density of the particle */
+    float _pressure; /*!< The pressure on the particle */
 
-    const QVector<AnimatedObject *> & _everyone;
+    const QVector<AnimatedObject *> & _everyone; /*!< All the particle, for SPH computation */
 
+    /// \brief Reinitializes all the properties
     virtual void _clear();
-
-    void _displayBefore()const;
-    void _displayAfter(const QVector<float> & acc)const;
 };
 
 #endif // PARTICLE_H

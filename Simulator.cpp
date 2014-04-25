@@ -167,7 +167,7 @@ void Simulator::stop()
     this->Trace("<- stop()");
 }
 
-void Simulator::_showEntireMesh()
+void Simulator::_setUpScene()
 {
     std::vector<float> ext;
     if (this->hasEnvironment())
@@ -263,7 +263,7 @@ void Simulator::draw()
 
     if (first)
     {
-        _showEntireMesh();
+        _setUpScene();
         first = 0;
     }
 

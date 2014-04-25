@@ -13,73 +13,72 @@ class Simulator : public QObject, public wlCore
     Q_OBJECT
 
 public:
-    /// Instancie un nouveau simulateur.
-    /// <em>viewer</em> designe le viewer OpenGL associe a l'environnement.
-    /// <em>environment</em> designe l'environnement de la simulation, qui doit etre capable notamment de detecter des collisions ou de faire son propre rendu.
-    /// <em>items</em> designe les objets animes.
+    /// Creates a new kinematic simulator
+    /// <em>viewer</em> OpenGL viewer that is to be associated with the simulator.
+    /// <em>environment</em> Motion-less object in the simulation.
+    /// <em>items</em> Animated objects.
     Simulator(int debug=0, QGLViewer *viewer=NULL,
                 wlMesh *environment=NULL,
                 QVector<AnimatedObject*> * items=NULL);
-    /// Destructeur.
+    /// Destructor.
     virtual ~Simulator();
-    /// Necessaire pour l'heritage de la classe wlCore.
+    /// \brief Needed for wlCore inheritance.
     virtual char *getClassName()const;
 
-    /// \brief Associe un nouvel environnement.
+    /// \brief Defines an environment (motion less object)
     virtual void setEnvironment(wlMesh *env);
-    /// \brief Enregistre un objet supplementaire.
+    /// \brief Adds a new animated object.
     virtual void addItem(AnimatedObject * item);
-    /// \brief Supprime tous les objets animes.
+    /// \brief Remove all the animated objects.
     virtual void clearItems();
-    /// \brief Renvoie vrai si un environnement de simulation existe.
-    /// L'environnement de simulation designe typiquement en un ensemble d'obstacles fixes.
+    /// \brief Returns true if an environement is set.
+    /// The environment is typicaly a set of visible obstacles.
     virtual bool hasEnvironment()const;
 
 signals:
+    /// \brief Signal to request an update of opengl display.
     void requestUpdateGL();
 
 public slots:
-    /// \brief Definit le nombre de pas de temps de l'animation.
+    /// \brief Defines the number steps of the simulation.
     void setNumberOfTimeSteps(const int & nbSteps);
-    /// \brief Definit le pas de temps de l'animation.
+    /// \brief Defines the duration of a simulation step.
     void setTimeStep(const double & timestep);
 
-    /// \brief Reinitialise l'animation.
+    /// \brief Resets the simulation.
+    /// All the simulation parameters will be set to default.
     virtual void reset();
-    /// \brief Replace les objets à leurs positions initiales
+    /// \brief Moves back all animated objects to their inital positions.
     virtual void restart();
-    /// \brief Execute un pas de temps de l'animation.
+    /// \brief Computes one step of the simulation.
     virtual void step();
-    /// \brief Lance l'animation.
+    /// \brief Computes several steps of the simulation.
+    /// start a timer that will periodically compute one step, until the defined simulation's number of step is reeached.
     virtual void play();
-    /// \brief Stoppe l'animation en cours.
+    /// \brief Stops a previously played simulation.
     virtual void stop();
 
+    /// \brief Draws all objects.
     virtual void draw();
 
-    /// Affiche la valeur des principales variables.
+    /// Displays the simulation properties.
     virtual void printSelf();
 
 protected:
-    // L'environnement dans le quel se deroule la simulation.
-    wlMesh *_env;
-    // La liste des objets animes.
-    QVector<AnimatedObject*> & _items;
-    // Le viewer OpenGL.
-    QGLViewer *_viewer;
-    // la duree d'un pas de temps de la simulation
-    float _timestep;
-    // le nombre de pas de temps de la simulation
-    unsigned int _nsteps;
-    // le pas de temps courant
-    unsigned int _cstep;
-    // le timer pour le temps reel
-    QTimer * _timer;
+    wlMesh *_env; /*!< Motion less object in the scene */
+    QVector<AnimatedObject*> & _items; /*!< All animated objects */
+    QGLViewer *_viewer; /*!< The opengl viewer */
+    float _timestep; /*!< The duration of one step */
+    unsigned int _nsteps; /*!< The number os steps of the simulation */
+    unsigned int _cstep; /*!< The steps counter */
+    QTimer * _timer; /*!< Timer, for simulation playing */
 
-    // vide toutes les structures internes
+    /// \brief Reset all properties to default
     virtual void _clear();
 
-    virtual void _showEntireMesh();
+    /// \brief Sets the scene up.
+    /// Ensures that all objects are visible.
+    virtual void _setUpScene();
 };
 
 #endif // SIMULATOR_H

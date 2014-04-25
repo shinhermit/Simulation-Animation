@@ -95,7 +95,7 @@ float ParticleSimulator::getDynamicViscosityConstant()const
     return this->_coeff_mu;
 }
 
-float ParticleSimulator::getInitialDensity() const
+float ParticleSimulator::getReferenceDensity() const
 {
     return this->_coeff_rho0;
 }
@@ -118,7 +118,7 @@ void ParticleSimulator::setDynamicViscosityConstant(const double & coeff_mu)
     this->_coeff_mu = coeff_mu;
 }
 
-void ParticleSimulator::setInitialDensity(const double & coeff_rho0) throw(std::invalid_argument)
+void ParticleSimulator::setReferenceDensity(const double & coeff_rho0) throw(std::invalid_argument)
 {
     if(coeff_rho0 <= 0)
         throw std::invalid_argument("ParticleSimulator::setPressureTolerance: negative of null value given for density");
@@ -154,7 +154,7 @@ void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
     _openClDensityKernel.setGlobalWorkSize(_items.size());
     _openClTranslationKernel.setGlobalWorkSize(_items.size());
 
-    // Problem is not set: Floating point exception
+    // Problem if not set: Floating point exception
     _openClDensityKernel.setLocalWorkSize(1);
     _openClTranslationKernel.setLocalWorkSize(1);
 }
@@ -175,7 +175,7 @@ void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
 //    _openClDensityKernel.setGlobalWorkSize(_items.size());
 //    _openClTranslationKernel.setGlobalWorkSize(_items.size());
 
-//    // Problem is not set: Floating point exception
+//    // Problem if not set: Floating point exception
 //    _openClDensityKernel.setLocalWorkSize(1);
 //    _openClTranslationKernel.setLocalWorkSize(1);
 //}
@@ -198,7 +198,7 @@ void ParticleSimulator::printSelf()
     if(_gpuMode)
         this->Print("Mode de calcul : GPU");
     else
-        this->Print("Mode de calcul : GPU");
+        this->Print("Mode de calcul : CPU");
     this->Print("Les constantes de la simulation : d=%f, k=%f, mhu=%f, rho_0=%f", _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
 }
 

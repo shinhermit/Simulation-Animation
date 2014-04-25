@@ -17,9 +17,9 @@ AnimatedObject::AnimatedObject(int debug)
 void AnimatedObject::_clear()
 {
     _timestep = DefaultParameters::TimeStep;
-    _cstep = 0;
+    _step = 0;
 
-    _cvel = _initVel;
+    _vel = _initVel;
 
     _tVec.fill(0.);
 
@@ -56,22 +56,23 @@ float AnimatedObject::getTimeStep() const
 
 float AnimatedObject::getCurrentStep() const
 {
-    return _cstep;
+    return _step;
 }
 
 QVector<float> AnimatedObject::getVelocity() const
 {
-    return _cvel;
+    return _vel;
 }
 
 
-void AnimatedObject::printSelf()
+void AnimatedObject::printSelf() const
 {
     QVector<float> pos = getPosition();
 
-    this->Print("position initiale : %.2f %.2f %.2f", _initPos[0], _initPos[1], _initPos[2]);
-    this->Print("vitesse initiale : %.2f %.2f %.2f", _initVel[0], _initVel[1], _initVel[2]);
-    this->Print("position actuelle : %.2f %.2f %.2f", pos[0], pos[1], pos[2]);
+    this->Print("Initial Position : (%.2f, %.2f, %.2f)", _initPos[0], _initPos[1], _initPos[2]);
+    this->Print("INitial Speed : (%.2f, %.2f, %.2f)", _initVel[0], _initVel[1], _initVel[2]);
+    this->Print("Current Speed : (%.2f, %.2f, %.2f)", _vel[0], _vel[1], _vel[2]);
+    this->Print("Current Potision : (%.2f, %.2f, %.2f)", pos[0], pos[1], pos[2]);
 }
 
 void AnimatedObject::setInitialPosition(const float & x, const float & y, const float & z)
@@ -102,14 +103,14 @@ void AnimatedObject::setInitialVelocity(const float & vX, const float & vY, cons
 
 void AnimatedObject::setVelocity(const float & vX, const float & vY, const float & vZ)
 {
-    _cvel[0] = vX;
-    _cvel[1] = vY;
-    _cvel[2] = vZ;
+    _vel[0] = vX;
+    _vel[1] = vY;
+    _vel[2] = vZ;
 }
 
 void AnimatedObject::newStep()
 {
-    ++ _cstep;
+    ++ _step;
 }
 
 void AnimatedObject::reset()
@@ -117,8 +118,8 @@ void AnimatedObject::reset()
     this->Trace("-> reset()");
 
     _tVec.fill(0);
-    _cvel = _initVel;
-    _cstep = 0;
+    _vel = _initVel;
+    _step = 0;
 
     this->Modified("Position");
     this->Modified("DisplayList");
@@ -132,13 +133,13 @@ void AnimatedObject::step()
 
     float G = DefaultParameters::Gravity;
 
-    _tVec[0] += _cvel[0] * _timestep;
-    _tVec[1] += _cvel[1] * _timestep;
-    _tVec[2] += (_cvel[2] - G * _timestep) / 2 * _timestep;
+    _tVec[0] += _vel[0] * _timestep;
+    _tVec[1] += _vel[1] * _timestep;
+    _tVec[2] += (_vel[2] - G * _timestep) / 2 * _timestep;
 
-    _cvel[2] -= G * _timestep;
+    _vel[2] -= G * _timestep;
 
-    ++_cstep;
+    ++_step;
 
     this->Modified("Position");
     this->Modified("DisplayList");

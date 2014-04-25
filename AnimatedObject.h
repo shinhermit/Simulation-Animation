@@ -18,52 +18,53 @@ public:
     virtual char *getClassName()const;
 
   public slots:
-    /// \brief Definit le pas de temps de la simulation
+    /// \brief Defines the duration of a simulation's step
     virtual void setTimeStep(const float & timestep);
 
-    /// \brief Definit la position initiale de l'objet.
+    /// \brief Defines the initial position of the object.
     virtual void setInitialPosition(const float & x, const float & y, const float & z);
-    /// \brief Definit la position initiale de l'objet.
+    /// \brief Defines the current position of the object. Actually updates the translation vector.
     virtual void setPosition(const float & x, const float & y, const float & z);
 
-    /// \brief Definit la position initiale de l'objet.
+    /// \brief Defines the initial velocity of the object.
     virtual void setInitialVelocity(const float & vX, const float & vY, const float & vZ);
-    /// \brief Definit la vitesse instantanee de la mesh.
+    /// \brief Defines the velocity of the object.
     virtual void setVelocity(const float & vX, const float & vY, const float & vZ);
-    /// \brief Incrémente la compteur local de pas de temps. Utile après un retour de calcul en GPU.
+    /// \brief Increments the local simulation step counter. Useful for update after GPU computation.
     virtual void newStep();
 
-    /// \brief Renvoie la vitesse actuelle du centre de gravite de la mesh au format (<x>, <y>, <z>).
+    /// \brief Return the velocity of the object.
     virtual QVector<float> getVelocity()const;
-
-    /// \brief Obtient la position courante du mesh, wich is initial position plus translation
+    /// \brief Return the position of the object.
     virtual QVector<float> getPosition()const;
-    /// \brief Obtient le pas de temps de la simulation
+    /// \brief Returns the duration of the simulation step.
     virtual float getTimeStep()const;
-    /// \brief Obtient le pas de temps de la simulation
+    /// \brief Return the current step number.
     virtual float getCurrentStep()const;
 
-    /// Imprime le contenu de la mesh a la resolution courante : coordonnees des sommets, aretes et faces.
-    virtual void printSelf();
+    /// \brief Print the current state of the object.
+    virtual void printSelf()const;
 
-    /// \brief Ramene l'objet dans sa configuration initiale.
+    /// \brief Resets the object to its initial configuration.
     virtual void reset();
-    /// \brief Execute un pas de temps de l'animation.
+    /// \brief Executes one simulation step.
     virtual void step();
 
   protected:
     // Paramètres initiaux
-    float _timestep; /*!< la durée d'un pas de temps */
+    float _timestep; /*!< Duration of a simulation step */
 
-    QVector<float> _initPos; /*!< la position initiale */
-    QVector<float> _initVel; /*!< la vitesse initiale */
+    QVector<float> _initPos; /*!< Initial position */
+    QVector<float> _initVel; /*!< Initial velocity */
+    QVector<float> _initAcc; /*!< Initial acceleration */
 
     // Propriétés du pas de temps
-    int _cstep; /*!< le pas de temps courant*/
-    QVector<float> _cvel; /*!< la vitesse au pas de temps courant */
-    QVector<float> _tVec; /*!< le vecteur translation au pas de temps courant */
+    int _step; /*!< Current step */
+    QVector<float> _vel; /*!< Current velocity */
+    QVector<float> _acc; /*!< Current acceleration */
+    QVector<float> _tVec; /*!< Current translation vector */
 
-    /// \brief vide toutes les structures internes
+    /// \brief Reinitializes all the properties
     virtual void _clear();
 };
 
