@@ -82,7 +82,7 @@ void Project::_setSimulator(const unsigned int & nbItems, QGLViewer *viewer, con
 
     if(_gpuMode)
     {
-        _simulator->setOpenClContext(&_openClContext, &_openClInput, &_openClOutput);
+        _simulator->setOpenClContext(nbItems, &_openClContext, &_openClInput, &_openClOutput);
     }
 
     _simulator->createParticles(nbItems, debug);

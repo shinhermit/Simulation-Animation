@@ -16,7 +16,7 @@ public:
     ParticleSimulator(int debug=0, QGLViewer *viewer=NULL, wlMesh *environment=NULL);
 
     /// \brief Sets a context for GPU computation and activate GPU mode.
-    virtual void setOpenClContext(QCLContext * openClContext=NULL,
+    virtual void setOpenClContext(const unsigned int & workSize, QCLContext * openClContext=NULL,
                                   QCLVector<float> * openClInput=NULL,
                                   QCLVector<float> * openClOutput=NULL) throw(std::runtime_error);
     /// \brief Creates the particules handled by this simulator.
@@ -91,7 +91,9 @@ private:
     /// \brief Compute one simulation step on GPU
     void _gpuStep();
     /// \brief Copies the output of GPU computation to particles
-    void _copyResults(const QCLVector<float> & openClOutput);
+    void _copyResults(const QCLVector<float> & openClVector);
+    /// \brief Swaps the input an output vectors for the next step
+    void _swapCLVectors();
 };
 
 #endif // PARTICLESIMULATOR_H

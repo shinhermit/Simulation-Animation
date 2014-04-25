@@ -137,7 +137,7 @@ void ParticleSimulator::setParticlesMass(const double & mass) throw(std::invalid
     }
 }
 
-void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
+void ParticleSimulator::setOpenClContext(const unsigned int & workSize, QCLContext * openClContext,
                                          QCLVector<float> * openClInput,
                                          QCLVector<float> * openClOutput) throw(std::runtime_error)
 {
@@ -151,9 +151,7 @@ void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
 
     _openClTranslationKernel = _openClProgram.createKernel("gpu_step");
 
-    _openClTranslationKernel.setGlobalWorkSize(_items.size());
-    // Problem if not set: Floating point exception
-    _openClTranslationKernel.setLocalWorkSize(1);
+    _openClTranslationKernel.setGlobalWorkSize(workSize);
 }
 
 //void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
@@ -273,7 +271,7 @@ void ParticleSimulator::printCLVectors() const
 //    _openClTranslationKernel(openClInput, _cstep, _timestep, nbItems, particleMass, _coeff_d, _coeff_mu);
 //}
 
-void ParticleSimulator::_copyResults(const QCLVector<float> & openClOutput)
+void ParticleSimulator::_copyResults(const QCLVector<float> & openClVector)
 {
     Particle * particle;
     unsigned int index;
@@ -284,13 +282,25 @@ void ParticleSimulator::_copyResults(const QCLVector<float> & openClOutput)
         if(particle)
         {
             index = i * DefaultParameters::OCLOffset;
-            particle->setPosition(openClOutput[index], openClOutput[index+1], openClOutput[index+2]);
-            particle->setVelocity(openClOutput[index+3], openClOutput[index+4], openClOutput[index+5]);
-            particle->setDensity(openClOutput[index+6]);
-            particle->setPressure(openClOutput[index+7]);
+            particle->setPosition(openClVector[index], openClVector[index+1], openClVector[index+2]);
+            particle->setVelocity(openClVector[index+3], openClVector[index+4], openClVector[index+5]);
+            particle->setDensity(openClVector[index+6]);
+            particle->setPressure(openClVector[index+7]);
+
+            particle->newStep();
         }
     }
 }
+
+void ParticleSimulator::_swapCLVectors()
+{
+    QCLVector<float> * temp;
+
+    temp = _openClInput;
+    _openClInput = _openClOutput;
+    _openClOutput = temp;
+}
+
 void ParticleSimulator::_gpuStep()
 {
     Particle * particle;
@@ -305,6 +315,7 @@ void ParticleSimulator::_gpuStep()
     _openClTranslationKernel(*_openClInput, *_openClOutput, nbItems, _cstep, _timestep, particleMass, _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
 
     _copyResults(*_openClOutput);
+    _swapCLVectors();
 }
 
 

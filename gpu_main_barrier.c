@@ -87,8 +87,8 @@ void compute_density(__global __read_only float * input, __global __write_only f
 	}
     }
 
-  input[myRhoIndex] = density;
-  input[myPresIndex] = coeff_k*(density - refDensity);
+  output[myRhoIndex] = density;
+  output[myPresIndex] = coeff_k*(density - refDensity);
 }
 
 void compute_translation(__global __read_only float * input, __global __write_only float * output, unsigned int cstep, float timestep,
@@ -178,21 +178,21 @@ void compute_translation(__global __read_only float * input, __global __write_on
   //La vitesse
   float3 v0 = (float3)(input[myVelIndex], input[myVelIndex+1], input[myVelIndex+2]); //Save v_0
 
-  input[myVelIndex] += acc.x*timestep;
-  input[myVelIndex+1] += acc.y*timestep;
-  input[myVelIndex+2] += acc.z*timestep;
+  output[myVelIndex] += acc.x*timestep;
+  output[myVelIndex+1] += acc.y*timestep;
+  output[myVelIndex+2] += acc.z*timestep;
 
   //La translation
   // x = 1/2*a*t^2 + v_0*t + x_0
   // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
   float time = timestep * cstep;
   float time_p = time - timestep;
-  input[myPosIndex] += 0.5*acc.x*(time*time - time_p*time_p) + v0.x*timestep;
-  input[myPosIndex+1] += 0.5*acc.y*(time*time - time_p*time_p) + v0.y*timestep;
-  input[myPosIndex+2] += 0.5*acc.z*(time*time - time_p*time_p) + v0.z*timestep;
+  output[myPosIndex] += 0.5*acc.x*(time*time - time_p*time_p) + v0.x*timestep;
+  output[myPosIndex+1] += 0.5*acc.y*(time*time - time_p*time_p) + v0.y*timestep;
+  output[myPosIndex+2] += 0.5*acc.z*(time*time - time_p*time_p) + v0.z*timestep;
 }
 
-void debug_fill_pos(__global __write_only float * output)
+void debug_fill_pos(__global __write_only float * vector)
 {
   unsigned int myId = get_global_id(0);
 
@@ -201,36 +201,17 @@ void debug_fill_pos(__global __write_only float * output)
   unsigned int myRhoIndex = myVelIndex + 3;
   unsigned int myPresIndex = myRhoIndex + 1;
 
-  /* output[myPosIndex] += myId; */
-  /* output[myPosIndex+1] += myId; */
-  /* output[myPosIndex+2] += myId; */
-
-  output[myPosIndex] += 3;
-  output[myPosIndex+1] += 3;
-  output[myPosIndex+2] += 3;
-
+  vector[myPosIndex] = 30;
+  vector[myPosIndex+1] = 30;
+  vector[myPosIndex+2] = 30;
 }
 
 __kernel void gpu_step(__global __read_only float * input , __global __write_only float * output,  unsigned int nbItems, unsigned int cstep, float timestep,
 				  float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity)
 {
-  /* compute_density(input, output, nbItems, particleMass, maxDist, coeff_k, refDensity); */
-  /* barrier(CLK_GLOBAL_MEM_FENCE); */
-  /* compute_translation(input, output, cstep, timestep, nbItems, particleMass, maxDist, coeff_mu); */
+  compute_density(input, output, nbItems, particleMass, maxDist, coeff_k, refDensity);
+  barrier(CLK_GLOBAL_MEM_FENCE);
+  compute_translation(input, output, cstep, timestep, nbItems, particleMass, maxDist, coeff_mu);
 
-  unsigned int myId = get_global_id(0);
-
-  unsigned int myPosIndex = myId*8;
-  unsigned int myVelIndex = myPosIndex + 3;
-  unsigned int myRhoIndex = myVelIndex + 3;
-  unsigned int myPresIndex = myRhoIndex + 1;
-
-  /* output[myPosIndex] += myId; */
-  /* output[myPosIndex+1] += myId; */
-  /* output[myPosIndex+2] += myId; */
-
-  output[myPosIndex] = 3;
-  //output[myPosIndex+1] += 3;
-  //output[myPosIndex+2] += 3;
-  //debug_fill_pos(output);
+  /* debug_fill_pos(output); */
 }
