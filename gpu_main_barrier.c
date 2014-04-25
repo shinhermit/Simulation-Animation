@@ -211,12 +211,12 @@ void debug_fill_pos(__global __write_only float * output)
 
 }
 
-__kernel void gpu_step(__global __read_only float * input , __global __write_only int *output,  unsigned int nbItems, unsigned int cstep, float timestep,
-				  float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity )
+__kernel void gpu_step(__global __read_only float * input , __global __write_only float * output,  unsigned int nbItems, unsigned int cstep, float timestep,
+				  float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity)
 {
-  /* compute_density(input, nbItems, particleMass, maxDist, coeff_k, refDensity); */
+  /* compute_density(input, output, nbItems, particleMass, maxDist, coeff_k, refDensity); */
   /* barrier(CLK_GLOBAL_MEM_FENCE); */
-  /* compute_translation(input, cstep, timestep, nbItems, particleMass, maxDist, coeff_mu); */
+  /* compute_translation(input, output, cstep, timestep, nbItems, particleMass, maxDist, coeff_mu); */
 
   unsigned int myId = get_global_id(0);
 
@@ -229,7 +229,7 @@ __kernel void gpu_step(__global __read_only float * input , __global __write_onl
   /* output[myPosIndex+1] += myId; */
   /* output[myPosIndex+2] += myId; */
 
-  output[myId] += 3;
+  output[myPosIndex] = 3;
   //output[myPosIndex+1] += 3;
   //output[myPosIndex+2] += 3;
   //debug_fill_pos(output);

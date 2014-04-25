@@ -147,18 +147,12 @@ void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
     _openClInput = openClInput;
     _openClOutput = openClOutput;
 
-    QCLProgram progDensity, progTranslation;
-    progDensity = _openClContext->buildProgramFromSourceFile("./gpu_compute_density.c");
-    progTranslation = _openClContext->buildProgramFromSourceFile("./gpu_main_barrier.c");
+    _openClProgram = _openClContext->buildProgramFromSourceFile("./gpu_main_barrier.c");
 
-    _openClDensityKernel = progDensity.createKernel("compute_density");
-    _openClTranslationKernel = progTranslation.createKernel("gpu_step");
+    _openClTranslationKernel = _openClProgram.createKernel("gpu_step");
 
-    _openClDensityKernel.setGlobalWorkSize(_items.size());
     _openClTranslationKernel.setGlobalWorkSize(_items.size());
-
     // Problem if not set: Floating point exception
-    _openClDensityKernel.setLocalWorkSize(1);
     _openClTranslationKernel.setLocalWorkSize(1);
 }
 
@@ -300,19 +294,17 @@ void ParticleSimulator::_copyResults(const QCLVector<float> & openClOutput)
 void ParticleSimulator::_gpuStep()
 {
     Particle * particle;
-    QCLVector<float> & openClInput = *_openClInput;
-    QCLVector<float> & openClOutput = *_openClOutput;
     unsigned int nbItems = (unsigned int)_items.size();
     float particleMass;
 
     particle = (!_items.empty()) ? dynamic_cast<Particle*>(_items[0]) : NULL;
     particleMass = (particle != NULL) ? particle->getMass() : 0.;
 
-    /*__global float * data,  unsigned int nbItems, unsigned int cstep, float timestep,
-                      float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity*/
-    _openClTranslationKernel(openClInput, openClOutput, nbItems, _cstep, _timestep, particleMass, _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
+    /*__global __read_only float * input , __global __write_only float * output,  unsigned int nbItems, unsigned int cstep, float timestep,
+                  float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity*/
+    _openClTranslationKernel(*_openClInput, *_openClOutput, nbItems, _cstep, _timestep, particleMass, _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
 
-    _copyResults(openClOutput);
+    _copyResults(*_openClOutput);
 }
 
 
