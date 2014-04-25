@@ -69,10 +69,10 @@ void AnimatedObject::printSelf() const
 {
     QVector<float> pos = getPosition();
 
-    this->Print("Initial Position : (%.2f, %.2f, %.2f)", _initPos[0], _initPos[1], _initPos[2]);
-    this->Print("INitial Speed : (%.2f, %.2f, %.2f)", _initVel[0], _initVel[1], _initVel[2]);
-    this->Print("Current Speed : (%.2f, %.2f, %.2f)", _vel[0], _vel[1], _vel[2]);
-    this->Print("Current Potision : (%.2f, %.2f, %.2f)", pos[0], pos[1], pos[2]);
+    ::fprintf(::stderr, "Initial Position : (%.2f, %.2f, %.2f)\n", _initPos[0], _initPos[1], _initPos[2]);
+    ::fprintf(::stderr, "INitial Speed : (%.2f, %.2f, %.2f)\n", _initVel[0], _initVel[1], _initVel[2]);
+    ::fprintf(::stderr, "Current Speed : (%.2f, %.2f, %.2f)\n", _vel[0], _vel[1], _vel[2]);
+    ::fprintf(::stderr, "Current Potision : (%.2f, %.2f, %.2f)\n", pos[0], pos[1], pos[2]);
 }
 
 void AnimatedObject::setInitialPosition(const float & x, const float & y, const float & z)

@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QVector>
+#include <cstdio>
 
 #include "wlCore.h"
 #include "DefaultParameters.h"

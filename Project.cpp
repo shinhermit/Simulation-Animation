@@ -61,6 +61,7 @@ void Project::_configOpenCL(const bool & gpuMode, const unsigned int & nbItems)
         }
 
         _openClInput = _openClContext.createVector<float>(kinSize);
+        _openClOutput = _openClContext.createVector<float>(kinSize);
     }
 }
 
@@ -81,7 +82,7 @@ void Project::_setSimulator(const unsigned int & nbItems, QGLViewer *viewer, con
 
     if(_gpuMode)
     {
-        _simulator->setOpenClContext(&_openClContext, &_openClInput);
+        _simulator->setOpenClContext(&_openClContext, &_openClInput, &_openClOutput);
     }
 
     _simulator->createParticles(nbItems, debug);

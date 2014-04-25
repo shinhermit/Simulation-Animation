@@ -25,7 +25,7 @@ public:
 
 public slots:
     /// \brief Defines the density of the particle. Useful for the update after a GPU computation
-    virtual void setDendity(const float & density);
+    virtual void setDensity(const float & density);
     /// \brief Defines the pressure of the particle. Useful for the update after a GPU computation
     virtual void setPressure(const float & pressure);
     /// \brief Computes the SPH for the density (and thus the pressure) of the particle

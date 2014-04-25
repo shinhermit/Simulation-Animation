@@ -177,40 +177,14 @@ void Particle::printSelf() const
 {
     AnimatedObject::printSelf();
 
-    this->Print("Density : %.2f", _density);
-    this->Print("Pressure: %.2f", _pressure);
-}
-
-void Particle::_displayBefore() const
-{
-    std::cerr << "Particle::computeVelocity: velocity before computation is ("
-              << _vel[0] << ", " << _vel[1] << ", " << _vel[2] << ")" << std::endl;
-    std::cerr << "Particle::computeVelocity: position before computation is ("
-              << this->getPosition()[0] << ", " << this->getPosition()[1] << ", "
-              << this->getPosition()[2] << ")" << std::endl;
-    std::cerr << std::endl;
-}
-
-void Particle::_displayAfter(const QVector<float> & acc) const
-{
-    QVector<float> p = this->getPosition();
-
-    std::cerr << "Particle::computeVelocity: this->timestep is " << _timestep << std::endl;
-    std::cerr << "Particle::computeVelocity: density after computation is " << _density << std::endl;
-    std::cerr << "Particle::computeVelocity: pressure after computation is " << _pressure << std::endl;
-    std::cerr << "Particle::computeVelocity: computed acceleration is ("
-              << acc[0] << ", " << acc[1] << ", " << acc[2] << ")" << std::endl;
-    std::cerr << "Particle::computeVelocity: velocity after computation is ("
-              << _vel[0] << ", " << _vel[1] << ", " << _vel[2] << ")" << std::endl;
-    std::cerr << "Particle::computeVelocity: position after computation is ("
-              << p[0] << ", " << p[1] << ", " << p[2] << ")" << std::endl;
-    std::cerr << std::endl << std::endl;
+    ::fprintf(::stderr, "Density : %.2f\n", _density);
+    ::fprintf(::stderr, "Pressure: %.2f\n", _pressure);
 }
 
 void Particle::step()
 {}
 
-void Particle::setDendity(const float &density)
+void Particle::setDensity(const float &density)
 {
     _density = density;
 }

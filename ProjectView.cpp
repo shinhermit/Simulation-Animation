@@ -70,10 +70,14 @@ void ProjectView::bindSimulator(ParticleSimulator & simu)
     QObject::connect(_ui->spinBox_mu, SIGNAL(valueChanged(double)), simulator, SLOT(setDynamicViscosityConstant(const double &))); // Coeff mu
     QObject::connect(_ui->spinBox_d, SIGNAL(valueChanged(double)), simulator, SLOT(setSmoothingTolerance(const double &))); // Coeff d
     QObject::connect(_ui->spinBox_k, SIGNAL(valueChanged(double)), simulator, SLOT(setPressureToDensityGradientProportionnality(const double &))); // Coeff k
-    QObject::connect(_ui->spinBox_rho0, SIGNAL(valueChanged(double)), simulator, SLOT(setInitialDensity(const double &))); // Ref density
+    QObject::connect(_ui->spinBox_rho0, SIGNAL(valueChanged(double)), simulator, SLOT(setReferenceDensity(const double &))); // Ref density
     QObject::connect(_ui->spinBox_mass, SIGNAL(valueChanged(double)), simulator, SLOT(setParticlesMass(const double &))); // Particles mass
     QObject::connect(_ui->spinBox_timestep, SIGNAL(valueChanged(double)), simulator, SLOT(setTimeStep(const double &))); // Time step
     QObject::connect(_ui->spinBox_nbSteps, SIGNAL(valueChanged(int)), simulator, SLOT(setNumberOfTimeSteps(int))); // Number of steps
+
+    //Debug controls
+    QObject::connect(_ui->bt_printParticles, SIGNAL(clicked()), simulator, SLOT(printParticles())); // Print particles
+    QObject::connect(_ui->bt_printVectors, SIGNAL(clicked()), simulator, SLOT(printCLVectors())); // Print particles
 
     //Updating the display
     QObject::connect(simulator, SIGNAL(requestUpdateGL()), _ui->viewer, SLOT(updateGL())); // update view

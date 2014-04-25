@@ -24,6 +24,7 @@ private:
     // chaque particule est représentée par
     // 8 valeurs contigues <px,py,pz, vx,vy,vz, density,pressure>
     QCLVector<float> _openClInput;
+    QCLVector<float> _openClOutput;
 
     void _configOpenCL(const bool & gpuMode, const unsigned int & nbItems);
     void _setView();
