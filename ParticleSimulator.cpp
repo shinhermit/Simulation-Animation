@@ -147,11 +147,13 @@ void ParticleSimulator::setOpenClContext(const unsigned int & workSize, QCLConte
     _openClInput = openClInput;
     _openClOutput = openClOutput;
 
-    _openClProgram = _openClContext->buildProgramFromSourceFile("./gpu_main_barrier.c");
+    _openClProgram = _openClContext->buildProgramFromSourceFile("./gpu_bindel_formula.c");
 
-    _openClTranslationKernel = _openClProgram.createKernel("gpu_step");
+    _openClTranslationKernel = _openClProgram.createKernel("compute_density");
+    _openClDensityKernel = _openClProgram.createKernel("compute_translation");
 
     _openClTranslationKernel.setGlobalWorkSize(workSize);
+    _openClDensityKernel.setGlobalWorkSize(workSize);
 }
 
 //void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
@@ -312,6 +314,7 @@ void ParticleSimulator::_gpuStep()
 
     /*__global __read_only float * input , __global __write_only float * output,  unsigned int nbItems, unsigned int cstep, float timestep,
                   float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity*/
+    _openClDensityKernel(*_openClInput, *_openClOutput, nbItems, _cstep, _timestep, particleMass, _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
     _openClTranslationKernel(*_openClInput, *_openClOutput, nbItems, _cstep, _timestep, particleMass, _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
 
     _copyResults(*_openClOutput);
