@@ -1,5 +1,7 @@
 #include "SPHKernel.h"
 
+const float SPHKernel::PI = 3.14159265359;
+
 SPHKernel::SPHKernel(const float & maxDist)
     :_maxDist(std::abs(maxDist)),
       _sqrMaxDist(_maxDist*_maxDist)

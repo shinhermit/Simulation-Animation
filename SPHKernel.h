@@ -10,6 +10,7 @@
 class SPHKernel
 {
 public:
+    static const float PI;
     SPHKernel(const float & maxDist=1.0);
     virtual ~SPHKernel();
 

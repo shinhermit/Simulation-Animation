@@ -47,7 +47,7 @@ float ViscosityKernel::laplacian(const QVector<float> & R_ij)const
 
     if(dist <= _maxDist)
     {
-        return 40*(1 - q) / (3.1415*std::pow(_maxDist, 4));
+        return 40*(1 - q) / (SPHKernel::PI*std::pow(_maxDist, 4));
     }
 
     else

@@ -66,7 +66,6 @@ void Particle::computeDensity(const SPHKernel & kernel, const float & refDensity
         }
     }
 
-//    this->_density = (density <= 0.) ? .000001 : density; // Pour les tests uniquement, résoudre plus tard
     this->_density = density;
     this->_pressure = coeff_k*(density - refDensity);
 }
@@ -109,7 +108,7 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
                 // Gradient de la pression
                 coeff = 0;
                 if(otherDensity != 0)
-                    coeff = 0.5 * other->getMass() * (this->_pressure + other->getPressure()) / otherDensity;
+                    coeff = other->getMass() * (this->_pressure + other->getPressure()) / (2*otherDensity);
                 gradK = kernelP.gradient(R_ij);
 
                 gradP[0] += coeff*gradK[0];
