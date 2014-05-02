@@ -5,6 +5,7 @@ AnimatedObject::AnimatedObject(int debug)
 {
     this->Trace("-> AnimatedObject()");
 
+    _initAcc << 0.0 << 0.0 << 0.0;
     _initVel << 0.0 << 0.0 << 0.0;
     _initPos << 0.0 << 0.0 << 0.0;
     _tVec << 0.0 << 0.0 << 0.0;
@@ -19,9 +20,9 @@ void AnimatedObject::_clear()
     _timestep = DefaultParameters::TimeStep;
     _step = 0;
 
-    _vel = _initVel;
-
     _tVec.fill(0.);
+    _vel = _initVel;
+    _acc = _initAcc;
 
     this->Modified("Position");
 }

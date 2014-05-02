@@ -10,7 +10,7 @@ void ParticleSimulator::_clear()
 {
     Simulator::_clear();
 
-    _gpuMode = false;
+    _gpuMode = DefaultParameters::GpuMode;
     _coeff_d = DefaultParameters::Coeff_d;
     _coeff_k = DefaultParameters::Coeff_k;
     _coeff_mu = DefaultParameters::Coeff_mu;
@@ -31,6 +31,8 @@ void ParticleSimulator::createParticles(const unsigned int & nbItems, const int 
     float step = 1;
     zOffset = 50;
 
+    QCLVector<float> & clInput = *_openClInput;
+
     for(unsigned int i=0; i < itemsPerSide; ++i)
     {
         Xp = i*step;
@@ -45,27 +47,24 @@ void ParticleSimulator::createParticles(const unsigned int & nbItems, const int 
                 particle->setInitialPosition(Xp, Yp, Zp);
                 particle->setInitialVelocity(0, 0, 0);
 
-                if(_gpuMode)
-                {
-                    QCLVector<float> & clInput = *_openClInput;
+                index = k + j*itemsPerSide + i*itemsPerSide*itemsPerSide;
+                index *= DefaultParameters::OCLOffset;
 
-                    index = k + j*itemsPerSide + i*itemsPerSide*itemsPerSide;
-                    index *= DefaultParameters::OCLOffset;
+             /*** OpenCL vector ***/
+                // Position
+                clInput[index] = Xp;
+                clInput[index+1] = Yp;
+                clInput[index+2] = Zp;
 
-                    // Position
-                    clInput[index] = Xp;
-                    clInput[index+1] = Yp;
-                    clInput[index+2] = Zp;
+                // Velocity
+                clInput[index+3] = 0;
+                clInput[index+4] = 0;
+                clInput[index+5] = 0;
 
-                    // Velocity
-                    clInput[index+3] = 0;
-                    clInput[index+4] = 0;
-                    clInput[index+5] = 0;
-
-                    //Density and pressure
-                    clInput[index+6] = 0;
-                    clInput[index+7] = 0;
-                }
+                //Density and pressure
+                clInput[index+6] = 0;
+                clInput[index+7] = 0;
+             /*** end OpenCL init ***/
 
                 particle->reset();
 
@@ -122,7 +121,7 @@ void ParticleSimulator::setDynamicViscosityConstant(const double & coeff_mu)
 void ParticleSimulator::setReferenceDensity(const double & coeff_rho0) throw(std::invalid_argument)
 {
     if(coeff_rho0 <= 0)
-        throw std::invalid_argument("ParticleSimulator::setPressureTolerance: negative of null value given for density");
+        throw std::invalid_argument("ParticleSimulator::setReferenceDensity: negative of null value given for density");
 
     this->_coeff_rho0 = coeff_rho0;
 }
@@ -141,8 +140,6 @@ void ParticleSimulator::setOpenClContext(const unsigned int & workSize, QCLConte
                                          QCLVector<float> * openClInput,
                                          QCLVector<float> * openClOutput) throw(std::runtime_error)
 {
-    _gpuMode = true;
-
     _openClContext = openClContext;
     _openClInput = openClInput;
     _openClOutput = openClOutput;
@@ -175,14 +172,54 @@ void ParticleSimulator::setOpenClContext(const unsigned int & workSize, QCLConte
 //    _openClTranslationKernel.setLocalWorkSize(1);
 //}
 
-void ParticleSimulator::setGPUMode(const bool & gpuMode) throw(std::logic_error)
+void ParticleSimulator::setGPUMode(const bool & newMode) throw(std::logic_error)
 {
-    if(gpuMode && (this->_openClContext==NULL || this->_openClInput==NULL))
+    if(newMode && (_openClContext==NULL || _openClInput==NULL))
     {
         throw std::logic_error("ParticleSimulator::setGPUMode: attempt to set GPU computation mode while OpenCl context not set.\n\t Consider using wlSimulator::setOpenClContext");
     }
 
-    this->_gpuMode = gpuMode;
+    // We don't wan to update CLInputVector if
+    // computation mode didn't actually changed
+    bool previousMode = _gpuMode;
+    if(previousMode != newMode)
+    {
+        _gpuMode = newMode;
+
+        if(_gpuMode)
+            _updateCLVector(*_openClInput);
+    }
+}
+
+void ParticleSimulator::_updateCLVector(QCLVector<float> & openClVector)
+{
+    unsigned int index;
+    Particle * particle;
+
+    for(unsigned int i=0; i < (unsigned int)_items.size(); ++i)
+    {
+        particle = dynamic_cast<Particle*>(_items[i]);
+        if(particle)
+        {
+            index = i * DefaultParameters::OCLOffset;
+
+            // Position
+            QVector<float> pos = particle->getPosition();
+            openClVector[index] = pos[0];
+            openClVector[index+1] = pos[1];
+            openClVector[index+2] = pos[2];
+
+            // Velocity
+            QVector<float> vel = particle->getVelocity();
+            openClVector[index+3] = vel[0];
+            openClVector[index+4] = vel[1];
+            openClVector[index+5] = vel[2];
+
+            //Density and pressure
+            openClVector[index+6] = particle->getDensity();
+            openClVector[index+7] = particle->getPressure();
+        }
+    }
 }
 
 void ParticleSimulator::printSelf()
@@ -271,7 +308,7 @@ void ParticleSimulator::printCLVectors() const
 //    _openClTranslationKernel(openClInput, _cstep, _timestep, nbItems, particleMass, _coeff_d, _coeff_mu);
 //}
 
-void ParticleSimulator::_copyResults(const QCLVector<float> & openClVector)
+void ParticleSimulator::_copyCLVector(const QCLVector<float> & openClVector)
 {
     Particle * particle;
     unsigned int index;
@@ -314,7 +351,7 @@ void ParticleSimulator::_gpuStep()
                   float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity*/
     _openClTranslationKernel(*_openClInput, *_openClOutput, nbItems, _cstep, _timestep, particleMass, _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
 
-    _copyResults(*_openClOutput);
+    _copyCLVector(*_openClOutput);
     _swapCLVectors();
 }
 
@@ -354,7 +391,11 @@ void ParticleSimulator::_cpuStep()
 
 void ParticleSimulator::reset()
 {
-    _clear();
+    _coeff_d = DefaultParameters::Coeff_d;
+    _coeff_k = DefaultParameters::Coeff_k;
+    _coeff_mu = DefaultParameters::Coeff_mu;
+    _coeff_rho0 = DefaultParameters::Rho0;
+
     Simulator::reset();
 
     this->draw();

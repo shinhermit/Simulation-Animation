@@ -48,6 +48,8 @@ void ProjectView::_setDefaultParameters()
     _ui->spinBox_timestep->setValue(DefaultParameters::TimeStep);
     _ui->spinBox_nbSteps->setValue(DefaultParameters::NbSteps);
 
+    _ui->radio_gpu->setChecked(DefaultParameters::GpuMode);
+
     _ui->spinBox_d->setValue(DefaultParameters::Coeff_d);
     _ui->spinBox_mu->setValue(DefaultParameters::Coeff_mu);
     _ui->spinBox_k->setValue(DefaultParameters::Coeff_k);
@@ -74,6 +76,7 @@ void ProjectView::bindSimulator(ParticleSimulator & simu)
     QObject::connect(_ui->spinBox_mass, SIGNAL(valueChanged(double)), simulator, SLOT(setParticlesMass(const double &))); // Particles mass
     QObject::connect(_ui->spinBox_timestep, SIGNAL(valueChanged(double)), simulator, SLOT(setTimeStep(const double &))); // Time step
     QObject::connect(_ui->spinBox_nbSteps, SIGNAL(valueChanged(int)), simulator, SLOT(setNumberOfTimeSteps(int))); // Number of steps
+    QObject::connect(_ui->radio_gpu, SIGNAL(toggled(bool)), simulator, SLOT(setGPUMode(bool))); // GPU/CPU
 
     //Debug controls
     QObject::connect(_ui->bt_printParticles, SIGNAL(clicked()), simulator, SLOT(printParticles())); // Print particles

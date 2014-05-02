@@ -12,6 +12,8 @@ public:
     static const unsigned int NbParticles;
     static const double TimeStep;
 
+    static const bool GpuMode;
+
     static const double Coeff_d;
     static const double Coeff_k;
     static const double Coeff_mu;

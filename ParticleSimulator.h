@@ -40,7 +40,7 @@ public slots:
     void printCLVectors()const;
 
     /// \brief Activates/desactivates the GPU computation. Exception thrown if activation attempt when no context set.
-    virtual void setGPUMode(const bool & gpuMode) throw(std::logic_error);
+    virtual void setGPUMode(const bool & yesNo) throw(std::logic_error);
     /// \brief Defines the maximale influence distance between particles.
     void setSmoothingTolerance(const double & coeff_d) throw(std::invalid_argument);
     /// \brief Defines the proportionnality coefficient between pressure and density.
@@ -91,7 +91,9 @@ private:
     /// \brief Compute one simulation step on GPU
     void _gpuStep();
     /// \brief Copies the output of GPU computation to particles
-    void _copyResults(const QCLVector<float> & openClVector);
+    void _copyCLVector(const QCLVector<float> & openClVector);
+    /// \brief Updates the openCL input vector when switching to GPU mode
+    void _updateCLVector(QCLVector<float> & openClVector);
     /// \brief Swaps the input an output vectors for the next step
     void _swapCLVectors();
 };

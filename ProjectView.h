@@ -32,6 +32,7 @@ public:
 
 signals:
     void requestReset();
+    void requestGpuMode(bool gpuYesNo);
 
 public slots:
     void reset();
