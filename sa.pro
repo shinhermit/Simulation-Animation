@@ -24,7 +24,8 @@ HEADERS += wlCore.h wlMesh.h wlGround.h\
     DefaultParameters.h \
     AnimatedObject.h \
     Simulator.h \
-    Viewer.h
+    Viewer.h \
+    Environment.h
 SOURCES += sa.cxx wlCore.cxx wlMesh.cxx wlGround.cxx\
     ParticleSimulator.cpp \
     SPHKernel.cpp \
@@ -37,7 +38,8 @@ SOURCES += sa.cxx wlCore.cxx wlMesh.cxx wlGround.cxx\
     DefaultParameters.cpp \
     AnimatedObject.cpp \
     Simulator.cpp \
-    Viewer.cpp
+    Viewer.cpp \
+    Environment.cpp
 
 
   QT       += core

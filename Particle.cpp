@@ -70,7 +70,7 @@ void Particle::computeDensity(const SPHKernel & kernel, const float & refDensity
     this->_pressure = coeff_k*(density - refDensity);
 }
 
-// !!! A vérifier: les division par density (density != 0 ?)
+// !!! To be checked: divisions by density (density != 0 ?)
 // If other's particle density is null, then we are not in this particle influence distance,
 // because in that, the density of this other particle would have at least included our influence
 // and thus could not have been null.
@@ -127,8 +127,6 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
         }
     }
 
-//    _displayBefore();
-
     //calcul de l'accélération et de la vitesse
     // The gravity
     if(this->getPosition()[2] > 0.1)
@@ -167,7 +165,6 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
     _tVec[1] += 0.5*acc[1]*(time*time - time_p*time_p) + v0[1]*_timestep;
     _tVec[2] += 0.5*acc[2]*(time*time - time_p*time_p) + v0[2]*_timestep;
 
-//    _displayAfter(acc);
 
     this->Modified("Position");
     this->Modified("DisplayList");

@@ -7,6 +7,7 @@
 #include "wlCore.h"
 #include "wlSimulationEnvironment.h"
 #include "AnimatedObject.h"
+#include "Environment.h"
 
 class Simulator : public QObject, public wlCore
 {
@@ -17,23 +18,16 @@ public:
     /// <em>viewer</em> OpenGL viewer that is to be associated with the simulator.
     /// <em>environment</em> Motion-less object in the simulation.
     /// <em>items</em> Animated objects.
-    Simulator(int debug=0, QGLViewer *viewer=NULL,
-                wlMesh *environment=NULL,
-                QVector<AnimatedObject*> * items=NULL);
+    Simulator(int debug=0, QGLViewer *viewer=NULL, QVector<AnimatedObject*> * items=NULL);
     /// Destructor.
     virtual ~Simulator();
     /// \brief Needed for wlCore inheritance.
     virtual char *getClassName()const;
 
-    /// \brief Defines an environment (motion less object)
-    virtual void setEnvironment(wlMesh *env);
     /// \brief Adds a new animated object.
     virtual void addItem(AnimatedObject * item);
     /// \brief Remove all the animated objects.
     virtual void clearItems();
-    /// \brief Returns true if an environement is set.
-    /// The environment is typicaly a set of visible obstacles.
-    virtual bool hasEnvironment()const;
 
 signals:
     /// \brief Signal to request an update of opengl display.
@@ -65,7 +59,7 @@ public slots:
     virtual void printSelf();
 
 protected:
-    wlMesh *_env; /*!< Motion less object in the scene */
+    Environment _env; /*!< Cubic limits of the scene */
     QVector<AnimatedObject*> & _items; /*!< All animated objects */
     QGLViewer *_viewer; /*!< The opengl viewer */
     float _timestep; /*!< The duration of one step */
@@ -78,7 +72,7 @@ protected:
 
     /// \brief Sets the scene up.
     /// Ensures that all objects are visible.
-    virtual void _setUpScene();
+    virtual void _setupScene();
 };
 
 #endif // SIMULATOR_H

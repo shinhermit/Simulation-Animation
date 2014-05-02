@@ -71,9 +71,7 @@ void Project::_setView()
 
 void Project::_setSimulator(const unsigned int & nbItems, QGLViewer *viewer, const int & debug)
 {
-    wlMesh * env = new wlGround(debug);
-
-    _simulator = new ParticleSimulator(debug, viewer, env);
+    _simulator = new ParticleSimulator(debug, viewer);
     _simulator->setSmoothingTolerance(DefaultParameters::Coeff_d);
     _simulator->setPressureToDensityGradientProportionnality(DefaultParameters::Coeff_k);
     _simulator->setOpenClContext(nbItems, &_openClContext, &_openClInput, &_openClOutput);

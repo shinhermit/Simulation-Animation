@@ -2,6 +2,8 @@
 #define PARTICLESIMULATOR_H
 
 #include <qclcontext.h>
+#include <ctime>
+//#include <cstdlib>
 
 #include "Simulator.h"
 #include "SPHKernels.h"
@@ -13,7 +15,7 @@ class ParticleSimulator : public Simulator
     Q_OBJECT
 
 public:
-    ParticleSimulator(int debug=0, QGLViewer *viewer=NULL, wlMesh *environment=NULL);
+    ParticleSimulator(int debug=0, QGLViewer *viewer=NULL);
 
     /// \brief Sets a context for GPU computation and activate GPU mode.
     virtual void setOpenClContext(const unsigned int & workSize, QCLContext * openClContext=NULL,

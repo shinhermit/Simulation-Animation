@@ -1,9 +1,10 @@
 #include "ParticleSimulator.h"
 
-ParticleSimulator::ParticleSimulator(int debug, QGLViewer *viewer, wlMesh *environment)
-    :Simulator(debug, viewer, environment, new QVector<AnimatedObject*>())
+ParticleSimulator::ParticleSimulator(int debug, QGLViewer *viewer)
+    :Simulator(debug, viewer, new QVector<AnimatedObject*>())
 {
     _clear();
+    ::srand(::time(NULL));
 }
 
 void ParticleSimulator::_clear()
@@ -25,52 +26,52 @@ void ParticleSimulator::createParticles(const unsigned int & nbItems, const int 
 {
     Particle * particle;
     float Xp, Yp, Zp, zOffset;
+    float xMin, xMax, yMin, yMax, zMin, zMax;
+    float padding;
     unsigned int index;
 
-    double itemsPerSide = ::pow(nbItems, 1./3);
-    float step = 1;
-    zOffset = 50;
+    padding = 0.05;
+    zOffset = 4./5;
+    xMin = _env.getXMin() - padding*_env.getXMin();
+    xMax = _env.getXMax() - padding*_env.getXMax();
+    yMin = _env.getYMin() - padding*_env.getYMin();
+    yMax = _env.getYMax() - padding*_env.getYMax();
+    zMin = _env.getZMin() + zOffset*(_env.getZMax()-_env.getZMin());
+    zMax = _env.getZMax();
 
     QCLVector<float> & clInput = *_openClInput;
 
-    for(unsigned int i=0; i < itemsPerSide; ++i)
+    for(unsigned int i=0; i < nbItems; ++i)
     {
-        Xp = i*step;
-        for(unsigned int j=0; j < itemsPerSide; ++j)
-        {
-            Yp = j*step;
-            for(unsigned int k=0; k < itemsPerSide; ++k)
-            {
-                Zp = k*step + zOffset;
+        Xp = xMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(xMax-xMin));
+        Yp = yMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(yMax-yMin));
+        Zp = zMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(zMax-zMin));
 
-                particle = new Particle(_items, debug);
-                particle->setInitialPosition(Xp, Yp, Zp);
-                particle->setInitialVelocity(0, 0, 0);
+        particle = new Particle(_items, debug);
+        particle->setInitialPosition(Xp, Yp, Zp);
+        particle->setInitialVelocity(0, 0, 0);
 
-                index = k + j*itemsPerSide + i*itemsPerSide*itemsPerSide;
-                index *= DefaultParameters::OCLOffset;
+        index = i * DefaultParameters::OCLOffset;
 
-             /*** OpenCL vector ***/
-                // Position
-                clInput[index] = Xp;
-                clInput[index+1] = Yp;
-                clInput[index+2] = Zp;
+     /*** OpenCL vector ***/
+        // Position
+        clInput[index] = Xp;
+        clInput[index+1] = Yp;
+        clInput[index+2] = Zp;
 
-                // Velocity
-                clInput[index+3] = 0;
-                clInput[index+4] = 0;
-                clInput[index+5] = 0;
+        // Velocity
+        clInput[index+3] = 0;
+        clInput[index+4] = 0;
+        clInput[index+5] = 0;
 
-                //Density and pressure
-                clInput[index+6] = 0;
-                clInput[index+7] = 0;
-             /*** end OpenCL init ***/
+        //Density and pressure
+        clInput[index+6] = 0;
+        clInput[index+7] = 0;
+     /*** end OpenCL init ***/
 
-                particle->reset();
+        particle->reset();
 
-                this->addItem(particle);
-            }
-        }
+        this->addItem(particle);
     }
 
 }
@@ -389,19 +390,6 @@ void ParticleSimulator::_cpuStep()
     }
 }
 
-void ParticleSimulator::reset()
-{
-    _coeff_d = DefaultParameters::Coeff_d;
-    _coeff_k = DefaultParameters::Coeff_k;
-    _coeff_mu = DefaultParameters::Coeff_mu;
-    _coeff_rho0 = DefaultParameters::Rho0;
-
-    Simulator::reset();
-
-    this->draw();
-    emit requestUpdateGL();
-}
-
 void ParticleSimulator::step()
 {
     if(this->_gpuMode)
@@ -418,6 +406,19 @@ void ParticleSimulator::step()
 
     if(_cstep > _nsteps)
         _timer->stop();
+
+    this->draw();
+    emit requestUpdateGL();
+}
+
+void ParticleSimulator::reset()
+{
+    _coeff_d = DefaultParameters::Coeff_d;
+    _coeff_k = DefaultParameters::Coeff_k;
+    _coeff_mu = DefaultParameters::Coeff_mu;
+    _coeff_rho0 = DefaultParameters::Rho0;
+
+    Simulator::reset();
 
     this->draw();
     emit requestUpdateGL();

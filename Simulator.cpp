@@ -1,19 +1,11 @@
 #include "Simulator.h"
 
-Simulator::Simulator(int debug, QGLViewer *viewer,
-                         wlMesh *env,
-                         QVector<AnimatedObject*> * items)
+Simulator::Simulator(int debug, QGLViewer *viewer, QVector<AnimatedObject*> * items)
     : wlCore(debug),
-      _env(env),
       _items(*items),
       _viewer(viewer)
 {
-    this->Trace("-> Simulator(%p, %d)", _env, _items.size());
-
     _clear();
-
-//    if (this->hasEnvironment())
-//        _env->SetViewer(_viewer);
 
     if (_viewer != NULL)
         connect(_viewer, SIGNAL(drawNeeded()), this, SLOT(draw()));
@@ -21,8 +13,6 @@ Simulator::Simulator(int debug, QGLViewer *viewer,
     _timer = new QTimer(this);
     _timer->setInterval((int)(_timestep*1000));
     connect(_timer, SIGNAL(timeout()), this, SLOT(step()));
-
-    this->Trace("<- Simulator()");
 }
 
 Simulator::~Simulator()
@@ -56,17 +46,6 @@ void Simulator::printSelf()
     }
 }
 
-void Simulator::setEnvironment(wlMesh *env)
-{
-    if (env != NULL)
-    {
-        if (this->hasEnvironment())
-            delete _env;
-
-        _env = env;
-    }
-}
-
 void Simulator::addItem(AnimatedObject * item)
 {
     if (item != NULL)
@@ -78,11 +57,6 @@ void Simulator::addItem(AnimatedObject * item)
 void Simulator::clearItems()
 {
     _items.clear();
-}
-
-bool Simulator::hasEnvironment()const
-{
-    return _env != NULL;
 }
 
 void Simulator::setTimeStep(const double & timestep)
@@ -167,38 +141,18 @@ void Simulator::stop()
     this->Trace("<- stop()");
 }
 
-void Simulator::_setUpScene()
+void Simulator::_setupScene()
 {
-    std::vector<float> ext;
-    if (this->hasEnvironment())
-        ext = _env->GetExtends();
-
-    else
-    {
-        ext.reserve(6);
-        ext[0] = ext[2] = ext[4] = FLT_MAX;
-        ext[1] = ext[3] = ext[5] = -FLT_MAX;
-    }
-
-    for (int i=0 ; i<_items.size() ; i++)
-    {
-        QVector<float> p = _items[i]->getPosition();
-        QVector<float> ext1;
-        ext1 << p[0] << p[0] << p[1] << p[1] << p[2] << p[2];
-
-        for (int j=0 ; j<5 ; j+=2)
-        {
-            ext[j] = ext1[j] < ext[j] ? ext1[j] : ext[j];
-            ext[j+1] = ext1[j+1] > ext[j+1] ? ext1[j+1] : ext[j+1];
-        }
-    }
-
+    QVector<float> ext;
     std::vector<float> size;
+    std::vector<float> center;
+
+    ext = _env.getLimits();
+
     size.push_back(ext[1] - ext[0]);
     size.push_back(ext[3] - ext[2]);
     size.push_back(ext[5] - ext[4]);
 
-    std::vector<float> center;
     center.push_back(ext[0] + size[0] / 2);
     center.push_back(ext[2] + size[1] / 2);
     center.push_back(ext[4] + size[2] / 2);
@@ -223,35 +177,18 @@ void Simulator::draw()
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//    if (this->hasEnvironment())
-//    {
-//        glPushMatrix();
-//        glCallList(_env->GetList());
-//        glPopMatrix();
-//    }
-    glPushMatrix();
-    glColor3f(0., 0.6, 0.3);
-    glBegin(GL_TRIANGLES);
-        glVertex3f(50., 50., 0);
-        glVertex3f(-50., 50., 0);
-        glVertex3f(-50., -50., 0);
-
-        glVertex3f(-50., -50., 0);
-        glVertex3f(50., -50., 0);
-        glVertex3f(50., 50., 0);
-    glEnd();
-    glPopMatrix();
+    _env.draw();
 
     glPushMatrix();
     glColor3f(0.6, 0.6, 0.6);
-    glPointSize(1.);
+    glPointSize(2.);
     glBegin(GL_POINTS);
     for (int i=0 ; i<_items.size() ; ++i)
     {
         QVector<float> p = _items[i]->getPosition();
-        //std::cerr << "Simulator::draw: drawing at potision (" << p[0] << "," << p[1] << "," << p[2] << ")" << std::endl;
         glVertex3f(p[0], p[1], p[2]);
     }
     glEnd();
@@ -263,7 +200,7 @@ void Simulator::draw()
 
     if (first)
     {
-        _setUpScene();
+        _setupScene();
         first = 0;
     }
 
