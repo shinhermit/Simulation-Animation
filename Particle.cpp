@@ -1,7 +1,8 @@
 #include "Particle.h"
 
-Particle::Particle(const QVector<AnimatedObject *> & everyone, int debug)
+Particle::Particle(const QVector<AnimatedObject *> & everyone, const Environment & env, int debug)
     : AnimatedObject(debug),
+      _env(env),
       _everyone(everyone)
 {
     _clear();
@@ -84,6 +85,7 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
     QVector<float> velOther;
     QVector<float> myPos, hisPos;
     float coeff;
+    float xCstrt, yCstrt, zCstrt;
 
     gradP << 0 << 0 << 0;
     laplV << 0 << 0 << 0;
@@ -129,22 +131,19 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
 
     //calcul de l'accélération et de la vitesse
     // The gravity
-    if(this->getPosition()[2] > 0.1)
-    {
-        acc << 0 << 0 << -9.8;
-    }
-    else
-    {
-        acc << 0 << 0 << 0;
-        _vel.fill(0);
-    }
+    acc << 0 << 0 << -9.8;
+
+    // Environment constraints (limits)
+    xCstrt = (myPos[0] <= _env.getXMin() || myPos[0]>= _env.getXMax()) ? 0 : 1;
+    yCstrt = (myPos[1] <= _env.getYMin() || myPos[1]>= _env.getYMax()) ? 0 : 1;
+    zCstrt = (myPos[2] <= _env.getZMin()) ? 0 : 1;
 
     // The influences
     if(_density)
     {
-        acc[0] += (coeff_mu*laplV[0] - gradP[0])/_density;
-        acc[1] += (coeff_mu*laplV[1] - gradP[1])/_density;
-        acc[2] += (coeff_mu*laplV[2] - gradP[2])/_density;
+        acc[0] += xCstrt *( (coeff_mu*laplV[0] - gradP[0])/_density );
+        acc[1] += yCstrt *( (coeff_mu*laplV[1] - gradP[1])/_density );
+        acc[2] += zCstrt *( (coeff_mu*laplV[2] - gradP[2])/_density );
     }
 
     ++ _step;
@@ -152,22 +151,18 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
     //La vitesse
     QVector<float> v0 = _vel; //Save v_0
 
-    _vel[0] += acc[0]*_timestep;
-    _vel[1] += acc[1]*_timestep;
-    _vel[2] += acc[2]*_timestep;
+    _vel[0] = xCstrt*( v0[0] + acc[0]*_timestep );
+    _vel[1] = yCstrt*( v0[1] + acc[1]*_timestep );
+    _vel[2] = zCstrt*( v0[2] + acc[2]*_timestep );
 
     //La translation
     // x = 1/2*a*t^2 + v_0*t + x_0
     // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
     float time = _timestep * _step;
     float time_p = time - _timestep;
-    _tVec[0] += 0.5*acc[0]*(time*time - time_p*time_p) + v0[0]*_timestep;
-    _tVec[1] += 0.5*acc[1]*(time*time - time_p*time_p) + v0[1]*_timestep;
-    _tVec[2] += 0.5*acc[2]*(time*time - time_p*time_p) + v0[2]*_timestep;
-
-
-    this->Modified("Position");
-    this->Modified("DisplayList");
+    _tVec[0] += xCstrt*( 0.5*acc[0]*(time*time - time_p*time_p) + v0[0]*_timestep );
+    _tVec[1] += yCstrt*( 0.5*acc[1]*(time*time - time_p*time_p) + v0[1]*_timestep );
+    _tVec[2] += zCstrt*( 0.5*acc[2]*(time*time - time_p*time_p) + v0[2]*_timestep );
 }
 
 void Particle::printSelf() const

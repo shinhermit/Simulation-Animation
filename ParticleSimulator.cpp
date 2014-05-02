@@ -25,8 +25,9 @@ void ParticleSimulator::_clear()
 void ParticleSimulator::createParticles(const unsigned int & nbItems, const int & debug)
 {
     Particle * particle;
-    float Xp, Yp, Zp, zOffset;
+    float Xp, Yp, Zp, Xv, Yv, Zv, zOffset;
     float xMin, xMax, yMin, yMax, zMin, zMax;
+    float vMin, vMax;
     float padding;
     unsigned int index;
 
@@ -39,6 +40,9 @@ void ParticleSimulator::createParticles(const unsigned int & nbItems, const int 
     zMin = _env.getZMin() + zOffset*(_env.getZMax()-_env.getZMin());
     zMax = _env.getZMax();
 
+    vMin = -3.;
+    vMax = 3.;
+
     QCLVector<float> & clInput = *_openClInput;
 
     for(unsigned int i=0; i < nbItems; ++i)
@@ -47,9 +51,13 @@ void ParticleSimulator::createParticles(const unsigned int & nbItems, const int 
         Yp = yMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(yMax-yMin));
         Zp = zMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(zMax-zMin));
 
-        particle = new Particle(_items, debug);
+        Xv = vMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(vMax-vMin));
+        Yv = vMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(vMax-vMin));
+        Zv = vMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(vMax-vMin));
+
+        particle = new Particle(_items, _env, debug);
         particle->setInitialPosition(Xp, Yp, Zp);
-        particle->setInitialVelocity(0, 0, 0);
+        particle->setInitialVelocity(Xv, Yv, Zv);
 
         index = i * DefaultParameters::OCLOffset;
 
@@ -60,9 +68,9 @@ void ParticleSimulator::createParticles(const unsigned int & nbItems, const int 
         clInput[index+2] = Zp;
 
         // Velocity
-        clInput[index+3] = 0;
-        clInput[index+4] = 0;
-        clInput[index+5] = 0;
+        clInput[index+3] = Xv;
+        clInput[index+4] = Yv;
+        clInput[index+5] = Zv;
 
         //Density and pressure
         clInput[index+6] = 0;

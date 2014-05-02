@@ -7,11 +7,12 @@
 #include "AnimatedObject.h"
 #include "SPHKernels.h"
 #include "DefaultParameters.h"
+#include "Environment.h"
 
 class Particle : public AnimatedObject
 {
 public:
-    Particle(const QVector<AnimatedObject*> & everyone, int debug=0);
+    Particle(const QVector<AnimatedObject*> & everyone, const Environment & env, int debug=0);
 
     /// \brief Defines the mass of the particle
     virtual void setMass(const float & mass) throw(std::invalid_argument);
@@ -46,6 +47,7 @@ protected:
     float _density; /*!< The density of the particle */
     float _pressure; /*!< The pressure on the particle */
 
+    const Environment & _env; /*!< Scene limits constraints */
     const QVector<AnimatedObject *> & _everyone; /*!< All the particle, for SPH computation */
 
     /// \brief Reinitializes all the properties
