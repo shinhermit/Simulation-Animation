@@ -78,12 +78,12 @@ void Environment::draw() const
         /**** FRONT *****/
         //1st triangle
         glVertex3f(xMax, yMin, zMax);
-        glVertex3f(xMin, yMin, zMax);
         glVertex3f(xMax, yMin, zMin);
+        glVertex3f(xMin, yMin, zMax);
         //2nd triangle
         glVertex3f(xMax, yMin, zMin);
-        glVertex3f(xMin, yMin, zMax);
         glVertex3f(xMin, yMin, zMin);
+        glVertex3f(xMin, yMin, zMax);
 
         /**** BACK *****/
         //1st triangle
@@ -98,12 +98,12 @@ void Environment::draw() const
         /**** LEFT *****/
         //1st triangle
         glVertex3f(xMin, yMax, zMax);
-        glVertex3f(xMin, yMax, zMin);
         glVertex3f(xMin, yMin, zMax);
+        glVertex3f(xMin, yMax, zMin);
         //2nd triangle
         glVertex3f(xMin, yMin, zMax);
-        glVertex3f(xMin, yMax, zMin);
         glVertex3f(xMin, yMin, zMin);
+        glVertex3f(xMin, yMax, zMin);
 
         /**** RIGHT *****/
         //1st triangle
