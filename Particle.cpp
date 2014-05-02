@@ -134,9 +134,9 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
     acc << 0 << 0 << -9.8;
 
     // Environment constraints (limits)
-    xCstrt = (myPos[0] <= _env.getXMin() || myPos[0]>= _env.getXMax()) ? 0 : 1;
-    yCstrt = (myPos[1] <= _env.getYMin() || myPos[1]>= _env.getYMax()) ? 0 : 1;
-    zCstrt = (myPos[2] <= _env.getZMin()) ? 0 : 1;
+    xCstrt = (myPos[0] <= _env.getXMin() || myPos[0]>= _env.getXMax()) ? -1 : 1;
+    yCstrt = (myPos[1] <= _env.getYMin() || myPos[1]>= _env.getYMax()) ? -1 : 1;
+    zCstrt = (myPos[2] <= _env.getZMin()) ? -1 : 1;
 
     // The influences
     if(_density)

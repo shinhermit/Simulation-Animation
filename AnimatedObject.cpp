@@ -116,22 +116,13 @@ void AnimatedObject::newStep()
 
 void AnimatedObject::reset()
 {
-    this->Trace("-> reset()");
-
     _tVec.fill(0);
     _vel = _initVel;
     _step = 0;
-
-    this->Modified("Position");
-    this->Modified("DisplayList");
-
-    this->Trace("<- reset()");
 }
 
 void AnimatedObject::step()
 {
-    this->Trace("-> step()");
-
     float G = DefaultParameters::Gravity;
 
     _tVec[0] += _vel[0] * _timestep;
@@ -141,8 +132,4 @@ void AnimatedObject::step()
     _vel[2] -= G * _timestep;
 
     ++_step;
-
-    this->Modified("Position");
-    this->Modified("DisplayList");
-    this->Trace("<- step()");
 }

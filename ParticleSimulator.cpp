@@ -263,7 +263,7 @@ void ParticleSimulator::printCLVectors() const
     QCLVector<float> & openClInput = *_openClInput;
     QCLVector<float> & openClOutput = *_openClOutput;
     int index;
-    std::cout << "Content of opencInput:" << std::endl;
+    std::cout << "Content of openCLInput:" << std::endl;
     for(unsigned int i = 0; i < (unsigned int)_items.size(); ++i)
     {
         index = i * DefaultParameters::OCLOffset;
@@ -280,7 +280,7 @@ void ParticleSimulator::printCLVectors() const
     }
     std::cout << std::endl;
 
-    std::cout << "Content of opencOutput:" << std::endl;
+    std::cout << "Content of openCLOutput:" << std::endl;
     for(unsigned int i = 0; i < (unsigned int)_items.size(); ++i)
     {
         index = i * DefaultParameters::OCLOffset;
@@ -419,6 +419,13 @@ void ParticleSimulator::step()
     emit requestUpdateGL();
 }
 
+void ParticleSimulator::restart()
+{
+    Simulator::restart();
+    if(_gpuMode)
+        _updateCLVector(*_openClInput);
+}
+
 void ParticleSimulator::reset()
 {
     _coeff_d = DefaultParameters::Coeff_d;
@@ -427,6 +434,9 @@ void ParticleSimulator::reset()
     _coeff_rho0 = DefaultParameters::Rho0;
 
     Simulator::reset();
+
+    if(_gpuMode)
+        _updateCLVector(*_openClInput);
 
     this->draw();
     emit requestUpdateGL();

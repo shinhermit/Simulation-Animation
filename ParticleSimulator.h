@@ -55,6 +55,8 @@ public slots:
     void setParticlesMass(const double & mass) throw(std::invalid_argument);
 
     /// \reimp
+    virtual void restart();
+    /// \reimp
     virtual void reset();
     /// \reimp
     virtual void step();

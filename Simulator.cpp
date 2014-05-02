@@ -94,6 +94,8 @@ void Simulator::reset()
 
 void Simulator::restart()
 {
+    _cstep = 0;
+
     for(int i = 0; i < _items.size(); ++i)
     {
         _items[i]->reset();
