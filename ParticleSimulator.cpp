@@ -1,7 +1,7 @@
 #include "ParticleSimulator.h"
 
-ParticleSimulator::ParticleSimulator(int debug, QGLViewer *viewer)
-    :Simulator(debug, viewer, new QVector<AnimatedObject*>())
+ParticleSimulator::ParticleSimulator(QGLViewer *viewer)
+    :Simulator(viewer, new QVector<AnimatedObject*>())
 {
     _clear();
     ::srand(::time(NULL));
@@ -22,7 +22,7 @@ void ParticleSimulator::_clear()
     _openClOutput = NULL;
 }
 
-void ParticleSimulator::createParticles(const unsigned int & nbItems, const int & debug)
+void ParticleSimulator::createParticles(const unsigned int & nbItems)
 {
     Particle * particle;
     float Xp, Yp, Zp, Xv, Yv, Zv, zOffset;
@@ -55,7 +55,7 @@ void ParticleSimulator::createParticles(const unsigned int & nbItems, const int 
         Yv = vMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(vMax-vMin));
         Zv = vMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(vMax-vMin));
 
-        particle = new Particle(_items, _env, debug);
+        particle = new Particle(_items, _env);
         particle->setInitialPosition(Xp, Yp, Zp);
         particle->setInitialVelocity(Xv, Yv, Zv);
 
@@ -160,27 +160,6 @@ void ParticleSimulator::setOpenClContext(const unsigned int & workSize, QCLConte
     _openClTranslationKernel.setGlobalWorkSize(workSize);
 }
 
-//void ParticleSimulator::setOpenClContext(QCLContext * openClContext,
-//                                         QCLVector<float> * openClInput) throw(std::runtime_error)
-//{
-//    _gpuMode = true;
-
-//    _openClContext = openClContext;
-//    _openClInput = openClInput;
-
-//    _openClProgram = _openClContext->buildProgramFromSourceFile("./gpu_main.c");
-
-//    _openClDensityKernel = _openClProgram.createKernel("compute_density");
-//    _openClTranslationKernel = _openClProgram.createKernel("compute_translation");
-
-//    _openClDensityKernel.setGlobalWorkSize(_items.size());
-//    _openClTranslationKernel.setGlobalWorkSize(_items.size());
-
-//    // Problem if not set: Floating point exception
-//    _openClDensityKernel.setLocalWorkSize(1);
-//    _openClTranslationKernel.setLocalWorkSize(1);
-//}
-
 void ParticleSimulator::setGPUMode(const bool & newMode) throw(std::logic_error)
 {
     if(newMode && (_openClContext==NULL || _openClInput==NULL))
@@ -235,12 +214,15 @@ void ParticleSimulator::printSelf()
 {
     Simulator::printSelf();
 
-    this->Print("ParticleSimulator::PrintSelf");
+    std::cout << "ParticleSimulator::PrintSelf" << std::endl;
     if(_gpuMode)
-        this->Print("Mode de calcul : GPU");
+        std::cout << "Mode de calcul : GPU" << std::endl;
     else
-        this->Print("Mode de calcul : CPU");
-    this->Print("Les constantes de la simulation : d=%f, k=%f, mhu=%f, rho_0=%f", _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
+        std::cout << "Mode de calcul : CPU" << std::endl;
+
+    std::cout << "Les constantes de la simulation : "
+              << "d=" << _coeff_d << ", k=" <<_coeff_k << ", mhu=" <<_coeff_mu
+              << ", rho_0=" <<_coeff_rho0 << "" << std::endl;
 }
 
 void ParticleSimulator::printParticles() const
@@ -298,26 +280,7 @@ void ParticleSimulator::printCLVectors() const
     std::cout << std::endl;
 }
 
-//void ParticleSimulator::_gpuStep()
-//{
-//    Particle * particle;
-//    QCLVector<float> & openClInput = *_openClInput;
-//    unsigned int nbItems = (unsigned int)_items.size();
-//    float particleMass;
-
-//    particle = (!_items.empty()) ? dynamic_cast<Particle*>(_items[0]) : NULL;
-//    particleMass = (particle != NULL) ? particle->getMass() : 0.;
-
-//    /*__global __read_write float * data, unsigned int nbItems,
-//                  float particleMass, float maxDist, float coeff_k, float refDensity*/
-//    _openClDensityKernel(openClInput, nbItems, particleMass, _coeff_d, _coeff_k, _coeff_rho0);
-
-//    /*__global __read_write float * data, unsigned int * cstep, float timestep,
-//                  unsigned int nbItems, float particleMass, float maxDist, float coeff_mu*/
-//    _openClTranslationKernel(openClInput, _cstep, _timestep, nbItems, particleMass, _coeff_d, _coeff_mu);
-//}
-
-void ParticleSimulator::_copyCLVector(const QCLVector<float> & openClVector)
+void ParticleSimulator::_fetchResults(const QCLVector<float> & openClVector)
 {
     Particle * particle;
     unsigned int index;
@@ -347,31 +310,42 @@ void ParticleSimulator::_swapCLVectors()
     _openClOutput = temp;
 }
 
-void ParticleSimulator::_gpuStep()
+void ParticleSimulator::_setKernelArgs(QCLKernel & kernel)
 {
-    Particle * particle;
-    unsigned int nbItems = (unsigned int)_items.size();
     float particleMass;
-
-    particle = (!_items.empty()) ? dynamic_cast<Particle*>(_items[0]) : NULL;
+    Particle * particle = (!_items.empty()) ? dynamic_cast<Particle*>(_items[0]) : NULL;
     particleMass = (particle != NULL) ? particle->getMass() : 0.;
 
-    /*__global __read_only float * input , __global __write_only float * output,  unsigned int nbItems, unsigned int cstep, float timestep,
-                  float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity*/
-    _openClTranslationKernel(*_openClInput, *_openClOutput, nbItems, _cstep, _timestep, particleMass, _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
+    kernel.setArg(0, *_openClInput);
+    kernel.setArg(1, *_openClOutput);
 
-    _copyCLVector(*_openClOutput);
+    kernel.setArg(2, _env.getXMin());
+    kernel.setArg(3, _env.getXMax());
+    kernel.setArg(4, _env.getYMin());
+    kernel.setArg(5, _env.getYMax());
+    kernel.setArg(6, _env.getZMin());
+    kernel.setArg(7, _env.getZMax());
+    kernel.setArg(8, _items.size());
+    kernel.setArg(9, _cstep);
+    kernel.setArg(10, _timestep);
+    kernel.setArg(11, particleMass);
+    kernel.setArg(12, _coeff_d);
+    kernel.setArg(13, _coeff_k);
+    kernel.setArg(14, _coeff_mu);
+    kernel.setArg(15, _coeff_rho0);
+}
+
+void ParticleSimulator::_gpuStep()
+{
+    _setKernelArgs(_openClTranslationKernel);
+
+    _fetchResults(*_openClOutput);
     _swapCLVectors();
 }
 
 
 void ParticleSimulator::_cpuStep()
 {
-    // !! Move the 3 kernels to attributes later !!
-    Poly6Kernel poly6(this->_coeff_d);
-    SpikyKernel spiky(this->_coeff_d);
-    ViscosityKernel viscy(this->_coeff_d);
-
     Particle * particle;
 
     //Compute densities first
@@ -381,7 +355,7 @@ void ParticleSimulator::_cpuStep()
 
         if(particle)
         {
-            particle->computeDensity(poly6, this->_coeff_rho0, this->_coeff_k);
+            particle->computeDensity(_coeff_d, this->_coeff_rho0, this->_coeff_k);
         }
 
     }
@@ -393,14 +367,14 @@ void ParticleSimulator::_cpuStep()
 
         if(particle)
         {
-            particle->computeTranslation(spiky, viscy, this->_coeff_mu);
+            particle->computeTranslation(_coeff_d, this->_coeff_mu);
         }
     }
 }
 
 void ParticleSimulator::step()
 {
-    if(this->_gpuMode)
+    if(_gpuMode)
     {
         _gpuStep();
     }
@@ -415,7 +389,7 @@ void ParticleSimulator::step()
     if(_cstep > _nsteps)
         _timer->stop();
 
-    this->draw();
+    //this->draw();
     emit requestUpdateGL();
 }
 

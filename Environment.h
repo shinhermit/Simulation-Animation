@@ -5,6 +5,7 @@
 
 #include <stdexcept>
 #include <QVector>
+#include <QVector3D>
 #include "DefaultParameters.h"
 
 class Environment
@@ -20,6 +21,10 @@ public:
     /// The environment is represented by a simple cube-like geometry
     /// the vector argument must have the form <xMin, xMax, yMin, yMax, zMin, zMax>
     void setLimits(const QVector<float> & limits) throw(std::invalid_argument);
+    /// \brief Provides the minimum values in a QVector3D
+    QVector3D getMinVector3D()const;
+    /// \brief Provides the minimum values in a QVector3D
+    QVector3D getMaxVector3D()const;
     /// \brief Provides the minimum value for x
     float getXMin()const;
     /// \brief Provides the maximum value for x

@@ -1,8 +1,7 @@
 #include "Particle.h"
 
-Particle::Particle(const QVector<AnimatedObject *> & everyone, const Environment & env, int debug)
-    : AnimatedObject(debug),
-      _env(env),
+Particle::Particle(const QVector<AnimatedObject *> & everyone, const Environment & env)
+      :_env(env),
       _everyone(everyone)
 {
     _clear();
@@ -40,7 +39,7 @@ float Particle::getPressure()const
     return _pressure;
 }
 
-void Particle::computeDensity(const SPHKernel & kernel, const float & refDensity, const float & coeff_k)
+void Particle::computeDensity(const float & maxDist, const float & refDensity, const float & coeff_k)
 {
     float density = 0;
     Particle * other;
@@ -61,7 +60,7 @@ void Particle::computeDensity(const SPHKernel & kernel, const float & refDensity
                      << myPos[1] - hisPos[1]
                      << myPos[2] - hisPos[2];
 
-                density += other->getMass() * kernel(R_ij);
+                density += other->getMass() * SPHKernels::poly6(maxDist, R_ij);
             }
         }
     }
@@ -74,7 +73,7 @@ void Particle::computeDensity(const SPHKernel & kernel, const float & refDensity
 // If other's particle density is null, then we are not in this particle influence distance,
 // because in that, the density of this other particle would have at least included our influence
 // and thus could not have been null.
-void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & kernelV, const float & coeff_mu)
+void Particle::computeTranslation(const float & maxDist, const float & coeff_mu)
 {
     Particle * other;
     QVector<float> R_ij;
@@ -108,8 +107,8 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
                 // Gradient de la pression
                 coeff = 0;
                 if(otherDensity != 0)
-                    coeff = other->getMass() * (this->_pressure + other->getPressure()) / (2*otherDensity);
-                gradK = kernelP.gradient(R_ij);
+                    coeff = other->getMass() * (_pressure + other->getPressure()) / (2*otherDensity);
+                gradK = SPHKernels::spiky(maxDist, R_ij);
 
                 gradP[0] += coeff*gradK[0];
                 gradP[1] += coeff*gradK[1];
@@ -118,12 +117,12 @@ void Particle::computeTranslation(const SPHKernel & kernelP, const SPHKernel & k
                 //Laplacien de la vitesse
                 coeff = 0;
                 if(otherDensity)
-                    coeff = other->getMass() * kernelV.laplacian(R_ij) / otherDensity;
+                    coeff = other->getMass() * SPHKernels::visco(maxDist, R_ij) / otherDensity;
                 velOther = other->getVelocity();
 
-                laplV[0] += coeff*(velOther[0] - _vel[0]);
-                laplV[1] += coeff*(velOther[1] - _vel[1]);
-                laplV[2] += coeff*(velOther[2] - _vel[2]);
+                laplV[0] += coeff*(_vel[0] - velOther[0]);
+                laplV[1] += coeff*(_vel[1] - velOther[1]);
+                laplV[2] += coeff*(_vel[2] - velOther[2]);
             }
         }
     }
@@ -168,8 +167,8 @@ void Particle::printSelf() const
 {
     AnimatedObject::printSelf();
 
-    ::fprintf(::stderr, "Density : %.2f\n", _density);
-    ::fprintf(::stderr, "Pressure: %.2f\n", _pressure);
+    std::cout <<  "Density : " << _density << std::endl;
+    std::cout << "Pressure: " << _pressure << std::endl;
 }
 
 void Particle::step()

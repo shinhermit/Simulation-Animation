@@ -8,15 +8,14 @@
 #include "wlCore.h"
 #include "DefaultParameters.h"
 
-class AnimatedObject : public QObject, public wlCore
+class AnimatedObject : public QObject
 {
     Q_OBJECT
 
 public:
-    AnimatedObject(int debug=0);
+    AnimatedObject();
 
     virtual ~AnimatedObject();
-    virtual char *getClassName()const;
 
   public slots:
     /// \brief Defines the duration of a simulation's step

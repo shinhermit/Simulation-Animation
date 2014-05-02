@@ -23,6 +23,16 @@ void Environment::setLimits(const QVector<float> &limits) throw(std::invalid_arg
     _limits = limits;
 }
 
+QVector3D Environment::getMinVector3D() const
+{
+    return QVector3D(_limits[0], _limits[2], _limits[4]);
+}
+
+QVector3D Environment::getMaxVector3D() const
+{
+    return QVector3D(_limits[1], _limits[3], _limits[5]);
+}
+
 float Environment::getXMin() const
 {
     return _limits[0];

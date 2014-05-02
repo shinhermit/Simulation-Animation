@@ -1,29 +1,19 @@
 #include "Project.h"
 
-Project::Project(const unsigned int & nbItems,
-                 const int & debug, const bool & gpuMode)
+Project::Project(const unsigned int & nbItems)
 {
-    this->Trace("-> Project()");
-
-    _configOpenCL(gpuMode, nbItems);
+    _configOpenCL(nbItems);
     _setView();
-    _setSimulator(nbItems, _view->getGLViewer(), debug);
+    _setSimulator(nbItems, _view->getGLViewer());
 
     _view->bindSimulator(*_simulator);
     _view->update();
-
-    this->Trace("<- Project");
 }
 
 Project::~Project()
 {
     _view->deleteLater();
     delete(_simulator);
-}
-
-char *Project::GetClassName()
-{
-    return "SA Project";
 }
 
 void Project::setGPUMode(const bool & trueFalse)
@@ -46,9 +36,9 @@ void Project::show()
     _view->show();
 }
 
-void Project::_configOpenCL(const bool & gpuMode, const unsigned int & nbItems)
+void Project::_configOpenCL(const unsigned int & nbItems)
 {
-    _gpuMode = gpuMode;
+    _gpuMode = DefaultParameters::GpuMode;
      //OpenCL: size of kinematics values array
     unsigned int kinSize = DefaultParameters::OCLOffset * nbItems;
 
@@ -69,11 +59,11 @@ void Project::_setView()
     _view->show();
 }
 
-void Project::_setSimulator(const unsigned int & nbItems, QGLViewer *viewer, const int & debug)
+void Project::_setSimulator(const unsigned int & nbItems, QGLViewer *viewer)
 {
-    _simulator = new ParticleSimulator(debug, viewer);
+    _simulator = new ParticleSimulator(viewer);
     _simulator->setSmoothingTolerance(DefaultParameters::Coeff_d);
     _simulator->setPressureToDensityGradientProportionnality(DefaultParameters::Coeff_k);
     _simulator->setOpenClContext(nbItems, &_openClContext, &_openClInput, &_openClOutput);
-    _simulator->createParticles(nbItems, debug);
+    _simulator->createParticles(nbItems);
 }

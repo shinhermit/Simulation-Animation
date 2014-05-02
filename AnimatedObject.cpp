@@ -1,18 +1,13 @@
 #include "AnimatedObject.h"
 
-AnimatedObject::AnimatedObject(int debug)
-    :wlCore(debug)
+AnimatedObject::AnimatedObject()
 {
-    this->Trace("-> AnimatedObject()");
-
     _initAcc << 0.0 << 0.0 << 0.0;
     _initVel << 0.0 << 0.0 << 0.0;
     _initPos << 0.0 << 0.0 << 0.0;
     _tVec << 0.0 << 0.0 << 0.0;
 
     _clear();
-
-    this->Trace("<- AnimatedObject()");
 }
 
 void AnimatedObject::_clear()
@@ -23,17 +18,10 @@ void AnimatedObject::_clear()
     _tVec.fill(0.);
     _vel = _initVel;
     _acc = _initAcc;
-
-    this->Modified("Position");
 }
 
 AnimatedObject::~AnimatedObject()
 {}
-
-char *AnimatedObject::getClassName() const
-{
-    return "AnimatedObject";
-}
 
 void AnimatedObject::setTimeStep(const float &  timestep)
 {
@@ -90,9 +78,6 @@ void AnimatedObject::setPosition(const float & x, const float & y, const float &
     _tVec[0] += x - p[0];
     _tVec[1] += y - p[1];
     _tVec[2] += z - p[2];
-
-    this->Modified("Position");
-    this->Modified("DisplayList");
 }
 
 void AnimatedObject::setInitialVelocity(const float & vX, const float & vY, const float & vZ)

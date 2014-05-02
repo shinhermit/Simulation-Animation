@@ -15,14 +15,14 @@ class ParticleSimulator : public Simulator
     Q_OBJECT
 
 public:
-    ParticleSimulator(int debug=0, QGLViewer *viewer=NULL);
+    ParticleSimulator(QGLViewer *viewer=NULL);
 
     /// \brief Sets a context for GPU computation and activate GPU mode.
     virtual void setOpenClContext(const unsigned int & workSize, QCLContext * openClContext=NULL,
                                   QCLVector<float> * openClInput=NULL,
                                   QCLVector<float> * openClOutput=NULL) throw(std::runtime_error);
     /// \brief Creates the particules handled by this simulator.
-    virtual void createParticles(const unsigned int & nbItems, const int & debug);
+    virtual void createParticles(const unsigned int & nbItems);
 
 public slots:
     /// \brief Tells if GPU computation is active.
@@ -95,11 +95,13 @@ private:
     /// \brief Compute one simulation step on GPU
     void _gpuStep();
     /// \brief Copies the output of GPU computation to particles
-    void _copyCLVector(const QCLVector<float> & openClVector);
+    void _fetchResults(const QCLVector<float> & openClVector);
     /// \brief Updates the openCL input vector when switching to GPU mode
     void _updateCLVector(QCLVector<float> & openClVector);
     /// \brief Swaps the input an output vectors for the next step
     void _swapCLVectors();
+    /// \brief Sets the constant values that are to be passed to GPU kernel
+    void _setKernelArgs(QCLKernel & kernel);
 };
 
 #endif // PARTICLESIMULATOR_H
