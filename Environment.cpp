@@ -88,12 +88,12 @@ void Environment::draw() const
         /**** BACK *****/
         //1st triangle
         glVertex3f(xMax, yMax, zMax);
-        glVertex3f(xMax, yMax, zMin);
         glVertex3f(xMin, yMax, zMax);
+        glVertex3f(xMax, yMax, zMin);
         //2nd triangle
         glVertex3f(xMax, yMax, zMin);
-        glVertex3f(xMin, yMax, zMin);
         glVertex3f(xMin, yMax, zMax);
+        glVertex3f(xMin, yMax, zMin);
 
         /**** LEFT *****/
         //1st triangle
@@ -108,12 +108,12 @@ void Environment::draw() const
         /**** RIGHT *****/
         //1st triangle
         glVertex3f(xMax, yMax, zMax);
-        glVertex3f(xMax, yMin, zMax);
         glVertex3f(xMax, yMax, zMin);
+        glVertex3f(xMax, yMin, zMax);
         //2nd triangle
         glVertex3f(xMax, yMin, zMax);
-        glVertex3f(xMax, yMin, zMin);
         glVertex3f(xMax, yMax, zMin);
+        glVertex3f(xMax, yMin, zMin);
     glEnd();
     glPopMatrix();
 }
