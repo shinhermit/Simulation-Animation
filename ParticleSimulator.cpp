@@ -281,7 +281,7 @@ void ParticleSimulator::printCLVectors() const
     std::cout << std::endl;
 }
 
-void ParticleSimulator::_copyCLVector(const QCLVector<float> & openClVector)
+void ParticleSimulator::_fetchCLResults(const QCLVector<float> & openClVector)
 {
     Particle * particle;
     unsigned int index;
@@ -324,7 +324,7 @@ void ParticleSimulator::_gpuStep()
                   float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity*/
     _openClTranslationKernel(*_openClInput, *_openClOutput, nbItems, _cstep, _timestep, particleMass, _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
 
-    _copyCLVector(*_openClOutput);
+    _fetchCLResults(*_openClOutput);
     _swapCLVectors();
 }
 

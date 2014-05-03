@@ -95,7 +95,7 @@ private:
     /// \brief Compute one simulation step on GPU
     void _gpuStep();
     /// \brief Copies the output of GPU computation to particles
-    void _copyCLVector(const QCLVector<float> & openClVector);
+    void _fetchCLResults(const QCLVector<float> & openClVector);
     /// \brief Updates the openCL input vector when switching to GPU mode
     void _updateCLVector(QCLVector<float> & openClVector);
     /// \brief Swaps the input an output vectors for the next step
