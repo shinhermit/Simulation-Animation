@@ -10,6 +10,7 @@
 class SPHKernel
 {
 public:
+    static const float PI;
     SPHKernel(const float & maxDist=1.0);
     virtual ~SPHKernel();
 
@@ -17,11 +18,7 @@ public:
 
     float getMaxInfluenceDistance()const;
 
-    virtual float operator()(const QVector<float> & R_ij)const=0;
-
-    virtual QVector<float> gradient(const QVector<float> & R_ij)const=0;
-
-    virtual float laplacian(const QVector<float> & R_ij)const=0;
+    virtual QVector<float> operator()(const QVector<float> & R_ij)const=0;
 
 protected:
     float _maxDist;

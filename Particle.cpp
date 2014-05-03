@@ -65,7 +65,6 @@ void Particle::computeDensity(const float & maxDist, const float & refDensity, c
         }
     }
 
-//    this->_density = (density <= 0.) ? .000001 : density; // Pour les tests uniquement, résoudre plus tard
     this->_density = density;
     this->_pressure = coeff_k*(density - refDensity);
 }

@@ -100,6 +100,8 @@ private:
     void _updateCLVector(QCLVector<float> & openClVector);
     /// \brief Swaps the input an output vectors for the next step
     void _swapCLVectors();
+    /// \brief Sets the constant values that are to be passed to GPU kernel
+    void _setKernelArgs(QCLKernel & kernel);
 };
 
 #endif // PARTICLESIMULATOR_H

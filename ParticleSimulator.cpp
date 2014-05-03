@@ -311,18 +311,35 @@ void ParticleSimulator::_swapCLVectors()
     _openClOutput = temp;
 }
 
-void ParticleSimulator::_gpuStep()
+void ParticleSimulator::_setKernelArgs(QCLKernel & kernel)
 {
-    Particle * particle;
-    unsigned int nbItems = (unsigned int)_items.size();
     float particleMass;
-
-    particle = (!_items.empty()) ? dynamic_cast<Particle*>(_items[0]) : NULL;
+    Particle * particle = (!_items.empty()) ? dynamic_cast<Particle*>(_items[0]) : NULL;
     particleMass = (particle != NULL) ? particle->getMass() : 0.;
 
-    /*__global __read_only float * input , __global __write_only float * output,  unsigned int nbItems, unsigned int cstep, float timestep,
-                  float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity*/
-    _openClTranslationKernel(*_openClInput, *_openClOutput, nbItems, _cstep, _timestep, particleMass, _coeff_d, _coeff_k, _coeff_mu, _coeff_rho0);
+    kernel.setArg(0, *_openClInput);
+    kernel.setArg(1, *_openClOutput);
+
+    kernel.setArg(2, _env.getXMin());
+    kernel.setArg(3, _env.getXMax());
+    kernel.setArg(4, _env.getYMin());
+    kernel.setArg(5, _env.getYMax());
+    kernel.setArg(6, _env.getZMin());
+    kernel.setArg(7, _env.getZMax());
+    kernel.setArg(8, _items.size());
+    kernel.setArg(9, _cstep);
+    kernel.setArg(10, _timestep);
+    kernel.setArg(11, particleMass);
+    kernel.setArg(12, _coeff_d);
+    kernel.setArg(13, _coeff_k);
+    kernel.setArg(14, _coeff_mu);
+    kernel.setArg(15, _coeff_rho0);
+}
+
+void ParticleSimulator::_gpuStep()
+{
+    _setKernelArgs(_openClTranslationKernel);
+    _openClTranslationKernel.run();
 
     _fetchCLResults(*_openClOutput);
     _swapCLVectors();
@@ -331,7 +348,6 @@ void ParticleSimulator::_gpuStep()
 
 void ParticleSimulator::_cpuStep()
 {
-
     Particle * particle;
 
     //Compute densities first
@@ -360,7 +376,7 @@ void ParticleSimulator::_cpuStep()
 
 void ParticleSimulator::step()
 {
-    if(this->_gpuMode)
+    if(_gpuMode)
     {
         _gpuStep();
     }
@@ -375,7 +391,7 @@ void ParticleSimulator::step()
     if(_cstep > _nsteps)
         _timer->stop();
 
-    this->draw();
+    //this->draw();
     emit requestUpdateGL();
 }
 

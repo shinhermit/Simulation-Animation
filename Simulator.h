@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <qglviewer.h>
+#include <cstdio>
 
 #include "AnimatedObject.h"
 #include "Environment.h"

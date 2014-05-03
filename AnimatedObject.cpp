@@ -18,12 +18,10 @@ void AnimatedObject::_clear()
     _tVec.fill(0.);
     _vel = _initVel;
     _acc = _initAcc;
-
 }
 
 AnimatedObject::~AnimatedObject()
 {}
-
 
 void AnimatedObject::setTimeStep(const float &  timestep)
 {

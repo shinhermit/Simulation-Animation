@@ -26,7 +26,7 @@ QVector<float> SpikyKernel::gradient(const QVector<float> & R_ij)const
 
     if(dist <= _maxDist)
     {
-        coef = -30*std::pow(1-q, 2) / (3.1415*q*std::pow(_maxDist, 4));
+        coef = -30*std::pow(1-q, 2) / (SPHKernel::PI*q*std::pow(_maxDist, 4));
 
         res << coef*R_ij[0] << coef*R_ij[1] << coef*R_ij[2];
     }
@@ -43,7 +43,7 @@ float SpikyKernel::laplacian(const QVector<float> & R_ij)const
 
     if(dist <= _maxDist)
     {
-        return ( -45*(1 - 2*dist + 3*dist/_sqrMaxDist ) / (dist*std::pow(_maxDist, 4)) );
+        return ( 45*std::pow(_maxDist-dist, 3) / (dist*std::pow(_maxDist, 4)) );
     }
 
     else

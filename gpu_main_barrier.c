@@ -17,19 +17,16 @@ float3 sph_spiky(float h, float3 R_ij)
 {
   float3 res;
   float coef;
-    float r = sqrt(R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z);
-
-    res.x = res.y = res.z = 0.;
+  float r = sqrt(R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z);
 
     if(r <= h)
-    {
-        coef = 45.*pown(h-r, 3) / (r*M_PI_F*pown(h, 6));
+      coef = 45.*pown(h-r, 3) / (r*M_PI_F*pown(h, 6));
+    else
+      coef = 0.;
 
-
-        res.x = coef*R_ij.x;
-        res.y = coef*R_ij.y;
-        res.z = coef*R_ij.z;
-    }
+    res.x = coef*R_ij.x;
+    res.y = coef*R_ij.y;
+    res.z = coef*R_ij.z;
 
     return res;
 }
@@ -39,10 +36,7 @@ float sph_visco(float h, float3 R_ij)
     float r = sqrt(R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z);
 
     if(r <= h)
-    {
-        return 45.*(h - r) / (M_PI_F*pown(h, 6));
-    }
-
+        return 45.*(h-r) / (M_PI_F*pown(h, 6));
     else
         return 0.;
 }
@@ -90,7 +84,7 @@ void compute_density(__global __read_only float * input, __global __write_only f
   output[myPresIndex] = coeff_k*(density - refDensity);
 }
 
-void compute_translation(__global __read_only float * input, __global __write_only float * output, unsigned int cstep, float timestep,
+void compute_translation(__global __read_only float * input, __global __write_only float * output, float3 envMin, float3 envMax, unsigned int cstep, float timestep,
 			 unsigned int nbItems, float particleMass, float maxDist, float coeff_mu)
 {
   /***** Identify worker *****/
@@ -101,6 +95,7 @@ void compute_translation(__global __read_only float * input, __global __write_on
   float3 gradP, laplV, gradK;
   float3 acc;
   float coeff;
+  float3 cstrt;
 
   unsigned int hisPosIndex;
   unsigned int hisVelIndex;
@@ -131,8 +126,8 @@ void compute_translation(__global __read_only float * input, __global __write_on
 
 	  // Gradient de la pression
 	  coeff = 0;
-	  if(input[hisRhoIndex])
-	    coeff = 0.5 * particleMass * (input[myPresIndex] + input[hisPresIndex]) / input[hisRhoIndex];
+	  if(output[hisRhoIndex])
+	    coeff = particleMass * (output[myPresIndex] + output[hisPresIndex]) / (2*output[hisRhoIndex]);
 
 	  gradK = sph_spiky(maxDist, R_ij);
 
@@ -142,8 +137,8 @@ void compute_translation(__global __read_only float * input, __global __write_on
 
 	  //Laplacien de la vitesse
 	  coeff = 0;
-	  if(input[hisRhoIndex])
-	    coeff = particleMass * sph_visco(maxDist, R_ij) / input[hisRhoIndex];
+	  if(output[hisRhoIndex])
+	    coeff = particleMass * sph_visco(maxDist, R_ij) / output[hisRhoIndex];
 
 	  laplV.x += coeff*(input[myVelIndex] - input[hisVelIndex]);
 	  laplV.y += coeff*(input[myVelIndex+1] - input[hisVelIndex+1]);
@@ -152,43 +147,40 @@ void compute_translation(__global __read_only float * input, __global __write_on
     }
 
   //calcul de l'accélération et de la vitesse
-  // The gravity
-  float3 v0;
+    // The gravity
   acc.x = acc.y = 0;
-  if(input[myPosIndex+2] > 0.1)
-    {
-      acc.z = -9.8;
-      v0 = (float3)(input[myVelIndex], input[myVelIndex+1], input[myVelIndex+2]);
-    }
-  else
-    {
-      acc.z = 0;
-      v0 = (float3)(0,0,0);
-    }
+  acc.z = -9.8;
+
+  // Environment constraints (limits)
+  cstrt.x = (input[myPosIndex] <= envMin.x || input[myPosIndex]>= envMax.x) ? -1 : 1;
+  cstrt.y = (input[myPosIndex+1] <= envMin.y || input[myPosIndex+1]>= envMax.y) ? -1 : 1;
+  cstrt.z = (input[myPosIndex+2] <= envMin.z) ? -1 : 1;
 
   // The influences
-  if(input[myRhoIndex])
-    {
-      acc.x += (coeff_mu*laplV.x - gradP.x)/input[myRhoIndex];
-      acc.y += (coeff_mu*laplV.y - gradP.y)/input[myRhoIndex];
-      acc.z += (coeff_mu*laplV.z - gradP.z)/input[myRhoIndex];
-    }
+  if(output[myRhoIndex])
+  {
+    acc.x += cstrt.x *( (coeff_mu*laplV.x - gradP.x)/output[myRhoIndex] );
+    acc.y += cstrt.y *( (coeff_mu*laplV.y - gradP.y)/output[myRhoIndex] );
+    acc.z += cstrt.z *( (coeff_mu*laplV.z - gradP.z)/output[myRhoIndex] );
+  }
 
   ++ cstep;
 
   //La vitesse
-  output[myVelIndex] = v0.x + acc.x*timestep;
-  output[myVelIndex+1] = v0.y + acc.y*timestep;
-  output[myVelIndex+2] = v0.z + acc.z*timestep;
+  float3 v0 = (float3)(input[myVelIndex], input[myVelIndex+1], input[myVelIndex+2]); //Save v_0
+
+  output[myVelIndex] = cstrt.x * ( v0.x + acc.x*timestep );
+  output[myVelIndex+1] = cstrt.y * ( v0.y + acc.y*timestep );
+  output[myVelIndex+2] = cstrt.z * ( v0.z + acc.z*timestep );
 
   //La translation
   // x = 1/2*a*t^2 + v_0*t + x_0
   // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
   float time = timestep * cstep;
   float time_p = time - timestep;
-  output[myPosIndex] = input[myPosIndex] + 0.5*acc.x*(time*time - time_p*time_p) + v0.x*timestep;
-  output[myPosIndex+1] = input[myPosIndex+1] + 0.5*acc.y*(time*time - time_p*time_p) + v0.y*timestep;
-  output[myPosIndex+2] = input[myPosIndex+2] + 0.5*acc.z*(time*time - time_p*time_p) + v0.z*timestep;
+  output[myPosIndex] = input[myPosIndex] + cstrt.x*( 0.5*acc.x*(time*time - time_p*time_p) + v0.x*timestep );
+  output[myPosIndex+1] = input[myPosIndex+1] + cstrt.y*( 0.5*acc.y*(time*time - time_p*time_p) + v0.y*timestep );
+  output[myPosIndex+2] = input[myPosIndex+2] + cstrt.z*( 0.5*acc.z*(time*time - time_p*time_p) + v0.z*timestep );
 }
 
 void debug_fill_pos(__global __write_only float * vector)
@@ -205,12 +197,18 @@ void debug_fill_pos(__global __write_only float * vector)
   vector[myPosIndex+2] = 30;
 }
 
-__kernel void gpu_step(__global __read_only float * input , __global __write_only float * output,  unsigned int nbItems, unsigned int cstep, float timestep,
-				  float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity)
+/*__global __read_only float * input , __global __write_only float * output, constants[float envMinX,
+  float envMinY, float envMinZ, float envMaxX, float envMaxY, float envMaxZ,  unsigned int nbItems,
+  unsigned int cstep, float timestep, float particleMass, float maxDist, float coeff_k,
+  float coeff_mu, float refDensity]*/
+__kernel void gpu_step(__global __read_only float * input, __global __write_only float * output, float envXMin, float envXMax, float envYMin, float envYMax, float envZMin, float envZMax, unsigned int nbItems,
+		       unsigned int cstep, float timestep, float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity)
 {
+  float3 envMin = (float3)(envXMin, envYMin, envZMin);
+  float3 envMax = (float3)(envXMax, envYMax, envZMax);
   compute_density(input, output, nbItems, particleMass, maxDist, coeff_k, refDensity);
   barrier(CLK_GLOBAL_MEM_FENCE);
-  compute_translation(input, output, cstep, timestep, nbItems, particleMass, maxDist, coeff_mu);
+  compute_translation(input, output, envMin, envMax, cstep, timestep, nbItems, particleMass, maxDist, coeff_mu);
 
   /* debug_fill_pos(output); */
 }

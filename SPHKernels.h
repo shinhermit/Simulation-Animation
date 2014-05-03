@@ -1,5 +1,5 @@
-#ifndef SPHKERNELS_H
-#define SPHKERNELS_H
+#ifndef SPHKERNEL_H
+#define SPHKERNEL_H
 
 #include <stdexcept>
 #include <cmath>
@@ -21,4 +21,4 @@ private:
     static float _sqrMaxDist;
 };
 
-#endif // SPHKERNELS_H
+#endif // SPHKERNEL_H
