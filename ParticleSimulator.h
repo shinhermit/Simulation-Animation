@@ -3,29 +3,33 @@
 
 #include <qclcontext.h>
 #include <ctime>
-//#include <cstdlib>
+#include <QObject>
+#include <qglviewer.h>
 
-#include "Simulator.h"
+#include "Environment.h"
+
 #include "SPHKernels.h"
 #include "Particle.h"
 #include "DefaultParameters.h"
 
-class ParticleSimulator : public Simulator
+class ParticleSimulator : public QObject
 {
     Q_OBJECT
 
 public:
     ParticleSimulator(QGLViewer *viewer=NULL);
+    ~ParticleSimulator();
 
     /// \brief Sets a context for GPU computation and activate GPU mode.
-    virtual void setOpenClContext(const unsigned int & workSize, QCLContext * openClContext=NULL,
-                                  QCLVector<float> * openClInput=NULL,
-                                  QCLVector<float> * openClOutput=NULL) throw(std::runtime_error);
+    virtual void setOpenClContext(const int & workSize) throw(std::runtime_error);
     /// \brief Creates the particules handled by this simulator.
-    virtual void createParticles(const unsigned int & nbItems);
+    virtual void createParticles();
 
 signals:
+    /// \brief Informs the view that the smoothing distance has been programatically changed.
     void smoothingDistanceChanged(double);
+    /// \brief Signal to request an update of opengl display.
+    void requestUpdateGL();
 
 public slots:
     /// \brief Tells if GPU computation is active.
@@ -38,12 +42,20 @@ public slots:
     float getDynamicViscosityConstant()const;
     /// \brief Returns the reference density (environment density).
     float getReferenceDensity()const;
+    /// \brief Returns the number of particle for this simulator
+    int size()const;
+    /// \brief Returns the size of the clVectors
+    int clVectorsSize()const;
 
     /// \brief Debug tool: prints particle properties to std::err
     void printParticles()const;
     /// \brief Debug tool: prints the contents of openclVector to std::err
     void printCLVectors()const;
 
+    /// \brief Defines the number steps of the simulation.
+    void setNumberOfTimeSteps(const int & nbSteps);
+    /// \brief Defines the duration of a simulation step.
+    void setTimeStep(const double & timestep);
     /// \brief Activates/desactivates the GPU computation. Exception thrown if activation attempt when no context set.
     virtual void setGPUMode(const bool & yesNo) throw(std::logic_error);
     /// \brief Defines the maximale influence distance between particles.
@@ -63,50 +75,81 @@ public slots:
     virtual void reset();
     /// \reimp
     virtual void step();
+    /// \brief Computes several steps of the simulation.
+    /// start a timer that will periodically compute one step, until the defined simulation's number of step is reeached.
+    virtual void play();
+    /// \brief Stops a previously played simulation.
+    virtual void stop();
+
+    /// \brief Draws all objects.
+    virtual void draw();
 
     /// \reimp
     virtual void printSelf();
 
 protected:
-    QVector<Particle> _particles;
+    Environment _env; /*!< Cubic limits of the scene */
+    QGLViewer *_viewer; /*!< The opengl viewer */
+    float _timestep; /*!< The duration of one step */
+    int _nsteps; /*!< The number of steps of the simulation */
+    int _cstep; /*!< The steps counter */
+    QTimer * _timer; /*!< Timer, for simulation playing */
 
     //*********** OpenCl *********
     bool _gpuMode; /*!< Tells if GPU computation is activated */
+    bool _first; /*!< Tells if the entire scene has already been set up */
 
     // The following 3 pointers are received from class Project
     // No need for memory cleaning
-    QCLContext * _openClContext; /*!< Holds the opencl context */
-    QCLVector<float> * _openClInput; /*!< Holds the GPU inputs */
-    QCLVector<float> * _openClOutput; /*!< Holds the GPU outputs */
+    QCLContext _clContext; /*!< Holds the opencl context */
+    // clVectors that will hold particle dynamic properties
+    // we use theses vector even for cpu computation
+    // Each particle is represented by 8 contiguous values
+    //   <px,py,pz, vx,vy,vz, density,pressure>
+    QCLVector<float> _clInput; /*!< Holds the GPU inputs */
+    QCLVector<float> _clOutput; /*!< Holds the GPU outputs */
+    QCLVector<float> * _clInput_p; /*!< Used to swap input and output */
+    QCLVector<float> * _clOutput_p; /*!< Used to swap input and output */
+    QVector<float> _initial; /*!< Initial kinematic properties, allowing scene reset */
 
-    QCLProgram _openClProgram; /*!< The opencl program */
-    QCLKernel _openClDensityKernel; /*!< Kernel for densities computation in GPU */
-    QCLKernel _openClTranslationKernel; /*!< Kernel for positions computation in GPU */
+    QCLProgram _clProgram; /*!< The opencl program */
+    QCLKernel _clKernel; /*!< Kernel for positions computation in GPU */
 
     //***** Parameters for Navier-Stokes equations ******
     float _coeff_d; /*!< Maximal influence distance between particles */
     float _coeff_k; /*!< Pressure to density proportionality */
     float _coeff_mu; /*!< Dynamic viscosity */
     float _coeff_rho0; /*!< Reference density (environement density) */
+    float _particleMass; /*!< Uniform particles mass */
 
     /// \reimp
     virtual void _clear();
 
 private:
+    /// \brief CPU computation of the densities for all particles.
+    void _computeDensities();
+    /// \brief Use by _computePositions() to compute influences of pressure and viscosity
+    /// \param i indice of the particle on which the influences are computed
+    void _computeInfluences(const int & i, QVector<float> & gradPressure, QVector<float> & speedLaplacian);
+    /// \brief Use by _computePositions() to compute kinematic properties base on influences computed by _computeInfluences()
+    void _computeSmoothing(const int & i, const QVector<float> & gradPressure, const QVector<float> & speedLaplacian);
+    /// \brief CPU computation of the positions for all particles.
+    void _computePositions();
     /// \brief Compute one simulation step on CPU
     void _cpuStep();
     /// \brief Compute one simulation step on GPU
     void _gpuStep();
-    /// \brief Compute the dynamic smoothing distance
+    /// \brief Dynamically computes the smoothing distance
     void _computeSmoothingDistance();
-    /// \brief Copies the output of GPU computation to particles
-    void _fetchCLResults(const QCLVector<float> & openClVector);
-    /// \brief Updates the openCL input vector when switching to GPU mode
-    void _updateCLVector(QCLVector<float> & openClVector);
     /// \brief Swaps the input an output vectors for the next step
     void _swapCLVectors();
     /// \brief Sets the constant values that are to be passed to GPU kernel
     void _setKernelArgs(QCLKernel & kernel);
+
+
+    /// \brief Sets the scene up.
+    /// Ensures that all objects are visible.
+    virtual void _setupScene();
 };
 
 #endif // PARTICLESIMULATOR_H

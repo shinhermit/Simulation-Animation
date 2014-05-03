@@ -2,7 +2,6 @@
 
 Project::Project(const unsigned int & nbItems)
 {
-    _configOpenCL(nbItems);
     _setView();
     _setSimulator(nbItems, _view->getGLViewer());
 
@@ -36,20 +35,8 @@ void Project::show()
     _view->show();
 }
 
-void Project::_configOpenCL(const unsigned int & nbItems)
+void Project::_configOpenCL()
 {
-    _gpuMode = DefaultParameters::GpuMode;
-     //OpenCL: size of kinematics values array
-    unsigned int kinSize = DefaultParameters::OCLOffset * nbItems;
-
-    if (!_openClContext.create())
-    {
-        std::cerr << "Could not create OpenCL context for the GPU\n" << std::endl;
-        throw std::runtime_error("Project::_configOpenCL: Could not create OpenCL context for the GPU\n");
-    }
-
-    _openClInput = _openClContext.createVector<float>(kinSize);
-    _openClOutput = _openClContext.createVector<float>(kinSize);
 }
 
 void Project::_setView()
@@ -62,8 +49,6 @@ void Project::_setView()
 void Project::_setSimulator(const unsigned int & nbItems, QGLViewer *viewer)
 {
     _simulator = new ParticleSimulator(viewer);
-    _simulator->setSmoothingTolerance(DefaultParameters::Coeff_d);
-    _simulator->setPressureToDensityGradientProportionnality(DefaultParameters::Coeff_k);
-    _simulator->setOpenClContext(nbItems, &_openClContext, &_openClInput, &_openClOutput);
-    _simulator->createParticles(nbItems);
+    _simulator->setOpenClContext(nbItems);
+    _simulator->createParticles();
 }

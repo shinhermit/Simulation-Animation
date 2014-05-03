@@ -81,7 +81,7 @@ void ProjectView::bindSimulator(ParticleSimulator & simu)
 
     //Debug controls
     QObject::connect(_ui->bt_printParticles, SIGNAL(clicked()), simulator, SLOT(printParticles())); // Print particles
-    QObject::connect(_ui->bt_printVectors, SIGNAL(clicked()), simulator, SLOT(printCLVectors())); // Print particles
+    QObject::connect(_ui->bt_printVectors, SIGNAL(clicked()), simulator, SLOT(printCLVectors())); // Print clVectors
 
     //Updating the display
     QObject::connect(simulator, SIGNAL(requestUpdateGL()), _ui->viewer, SLOT(updateGL())); // update view

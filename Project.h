@@ -10,21 +10,7 @@ private:
     ProjectView * _view;
     ParticleSimulator * _simulator;
 
-    //*********** OpenCl *********
-    // Switch to enable GPU computing
-    bool _gpuMode;
-
-    // Contexte GPU
-    QCLContext _openClContext;
-
-    //Pour transmettre les données au GPU
-    // Vecteur de positions et vitesses
-    // chaque particule est représentée par
-    // 8 valeurs contigues <px,py,pz, vx,vy,vz, density,pressure>
-    QCLVector<float> _openClInput;
-    QCLVector<float> _openClOutput;
-
-    void _configOpenCL(const unsigned int & nbItems);
+    void _configOpenCL();
     void _setView();
     void _setSimulator(const unsigned int & nbItems, QGLViewer *viewer);
 
