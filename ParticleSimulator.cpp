@@ -448,10 +448,13 @@ void ParticleSimulator::_computeSmoothing(const int & i, const QVector<float> & 
     // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
     float time = _timestep * (_cstep+1);
     float ptime = time - _timestep;
+    std::cout << "ParticleSimulator::_computeSmoothing : processing particle " << i << std::endl;
     clOutput[i] = clInput[i] + xCstrt*( 0.5*acc[0]*(time*time - ptime*ptime) + v0[0]*_timestep );
     clOutput[i+1] = clInput[i+1] + yCstrt*( 0.5*acc[1]*(time*time - ptime*ptime) + v0[1]*_timestep );
-    clOutput[i+2] = clInput[i+2] + zCstrt*( 0.5*acc[2]*(time*time - ptime*ptime) + v0[2]*_timestep );
-    std::cout << "ParticleSimulator::_computeSmoothing : processing particle " << i << std::endl;
+    std::cout << "toto" << std::endl;
+//    clOutput[i+2] = clInput[i+2] + zCstrt*( 0.5*acc[2]*(time*time - ptime*ptime) + v0[2]*_timestep );
+    clOutput[i+2] = 1;
+    std::cout << "titi" << std::endl;
 }
 
 void ParticleSimulator::_computePositions()
