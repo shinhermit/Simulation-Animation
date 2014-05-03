@@ -483,7 +483,7 @@ void ParticleSimulator::_computeSmoothing(const int & i, const QVector<float> & 
     // Environment constraints (limits)
     xCstrt = (input[i] <= _env.getXMin() || input[i]>= _env.getXMax()) ? -1 : 1;
     yCstrt = (input[i+1] <= _env.getYMin() || input[i+1]>= _env.getYMax()) ? -1 : 1;
-    zCstrt = (input[i+2] <= _env.getZMin()) ? -1 : 1;
+    zCstrt = (input[i+2] <= _env.getZMin()+0.05*(_env.getZMax()-_env.getZMin())) ? -1 : 1;
 
     // The influences
     if(output[i+6] != 0)

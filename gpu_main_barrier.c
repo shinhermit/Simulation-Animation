@@ -154,7 +154,7 @@ void compute_translation(__global __read_only float * input, __global __write_on
   // Environment constraints (limits)
   cstrt.x = (input[myPosIndex] <= envMin.x || input[myPosIndex]>= envMax.x) ? -1 : 1;
   cstrt.y = (input[myPosIndex+1] <= envMin.y || input[myPosIndex+1]>= envMax.y) ? -1 : 1;
-  cstrt.z = (input[myPosIndex+2] <= envMin.z) ? -1 : 1;
+  cstrt.z = (input[myPosIndex+2] <= envMin.z+0.05*(envMax.z-envMin.z)) ? -1 : 1;
 
   // The influences
   if(output[myRhoIndex])
