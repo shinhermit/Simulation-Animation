@@ -20,13 +20,6 @@ ParticleSimulator::~ParticleSimulator()
     if(_timer->isActive())
         _timer->stop();
     delete(_timer);
-
-    _clInput_p = NULL;
-    _clInput_p = NULL;
-    _clInput.release();
-    _clOutput.release();
-    _clProgram.unloadCompiler();
-    _clContext.release();
 }
 
 
@@ -46,11 +39,16 @@ void ParticleSimulator::_clear()
 
     _input_p = &_input;
     _output_p = &_output;
-    _clInput_p = &_clInput;
-    _clOutput_p = &_clOutput;
+
+    _openClContext = NULL;
+    _openClInput = NULL;
+    _openClOutput = NULL;
 }
 
-void ParticleSimulator::initialize(const int & nbParticle) throw(std::runtime_error)
+void ParticleSimulator::initialize(const unsigned int &nbParticle,
+                                   QCLContext *openClContext,
+                                   QCLVector<float> *openClInput,
+                                   QCLVector<float> *openClOutput) throw(std::runtime_error)
 {
     unsigned int clSize = DefaultParameters::CLOffset * nbParticle;
 
@@ -61,29 +59,22 @@ void ParticleSimulator::initialize(const int & nbParticle) throw(std::runtime_er
     _input_p = &_input;
     _output_p = &_output;
 
-    if (!_clContext.create())
-    {
-        std::cerr << "Could not create OpenCL context for the GPU\n" << std::endl;
-        throw std::runtime_error("Project::_configOpenCL: Could not create OpenCL context for the GPU\n");
-    }
+    _openClContext = openClContext;
+    _openClInput = openClInput;
+    _openClOutput = openClOutput;
 
-    _clInput = _clContext.createVector<float>(clSize);
-    _clOutput = _clContext.createVector<float>(clSize);
-    _clInput_p = &_clInput;
-    _clOutput_p = &_clOutput;
-
-    _clProgram = _clContext.buildProgramFromSourceFile("./gpu_main_barrier.c");
-    _clKernel = _clProgram.createKernel("gpu_step");
-    _clKernel.setGlobalWorkSize(nbParticle);
+    _openClProgram = _openClContext->buildProgramFromSourceFile("./gpu_main_barrier.c");
+    _openClTranslationKernel = _openClProgram.createKernel("gpu_step");
+    _openClTranslationKernel.setGlobalWorkSize(nbParticle);
 }
 
-void ParticleSimulator::createParticles()
+void ParticleSimulator::createParticles(const unsigned int & nbItems)
 {
     float Xp, Yp, Zp, Xv, Yv, Zv, zOffset;
     float xMin, xMax, yMin, yMax, zMin, zMax;
     float vMin, vMax;
     float padding;
-    int i;
+    unsigned int index;
 
     padding = 0.05;
     zOffset = 4./5;
@@ -97,9 +88,10 @@ void ParticleSimulator::createParticles()
     vMin = -3.;
     vMax = 3.;
 
-    for(i=0; i < _input.size(); i+=DefaultParameters::CLOffset)
+    QCLVector<float> & clInput = *_openClInput;
+
+    for(unsigned int i=0; i < nbItems; ++i)
     {
-        std::cout << "ParticleSimulator::createParticles : initializing particle " << i/8 << std::endl;
         Xp = xMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(xMax-xMin));
         Yp = yMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(yMax-yMin));
         Zp = zMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(zMax-zMin));
@@ -108,41 +100,43 @@ void ParticleSimulator::createParticles()
         Yv = vMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(vMax-vMin));
         Zv = vMin + static_cast<float>(::rand()) / static_cast<float>(1.*RAND_MAX/(vMax-vMin));
 
+        index = i * DefaultParameters::CLOffset;
+
      /*** OpenCL vector ***/
         // Position
-        _initial[i] = Xp;
-        _input[i] = Xp;
-        _clInput[i] = Xp;
+        _initial[index] = Xp;
+        _input[index] = Xp;
+        clInput[index] = Xp;
 
-        _initial[i+1] = Yp;
-        _input[i+1] = Yp;
-        _clInput[i+1] = Yp;
+        _initial[index+1] = Yp;
+        _input[index+1] = Yp;
+        clInput[index+1] = Yp;
 
-        _initial[i+2] = Zp;
-        _input[i+2] = Zp;
-        _clInput[i+2] = Zp;
+        _initial[index+2] = Zp;
+        _input[index+2] = Zp;
+        clInput[index+2] = Zp;
 
         // Velocity
-        _initial[i+3] = Xv;
-        _input[i+3] = Xv;
-        _clInput[i+3] = Xv;
+        _initial[index+3] = Xv;
+        _input[index+3] = Xv;
+        clInput[index+3] = Xv;
 
-        _initial[i+4] = Yv;
-        _input[i+4] = Yv;
-        _clInput[i+4] = Yv;
+        _initial[index+4] = Yv;
+        _input[index+4] = Yv;
+        clInput[index+4] = Yv;
 
-        _initial[i+5] = Zv;
-        _input[i+5] = Zv;
-        _clInput[i+5] = Zv;
+        _initial[index+5] = Zv;
+        _input[index+5] = Zv;
+        clInput[index+5] = Zv;
 
         //Density and pressure
-        _initial[i+6] = DefaultParameters::Density;
-        _input[i+6] = DefaultParameters::Density;
-        _clInput[i+6] = DefaultParameters::Density;
+        _initial[index+6] = DefaultParameters::Density;
+        _input[index+6] = DefaultParameters::Density;
+        clInput[index+6] = DefaultParameters::Density;
 
-        _initial[i+7] = DefaultParameters::Pressure;
-        _input[i+7] = DefaultParameters::Pressure;
-        _clInput[i+7] = DefaultParameters::Pressure;
+        _initial[index+7] = DefaultParameters::Pressure;
+        _input[index+7] = DefaultParameters::Pressure;
+        clInput[index+7] = DefaultParameters::Pressure;
      /*** end OpenCL init ***/
     }
 }
@@ -218,8 +212,11 @@ void ParticleSimulator::setParticlesMass(const double & mass) throw(std::invalid
 
 void ParticleSimulator::setGPUMode(const bool & newMode) throw(std::logic_error)
 {
-//    if(newMode && (!_clContext.isCreated() || _clInput.isNull()))
-//        throw std::logic_error("ParticleSimulator::setGPUMode: attempt to set GPU computation mode while OpenCl context not set.\n\t Consider using wlSimulator::setOpenClContext");
+    if(newMode && (_openClContext==NULL || _openClInput==NULL))
+    {
+        throw std::logic_error("ParticleSimulator::setGPUMode: attempt to set GPU computation mode while OpenCl context not set.\n\t Consider using wlSimulator::setOpenClContext");
+    }
+
 
     if(_gpuMode != newMode)
     {
@@ -227,7 +224,7 @@ void ParticleSimulator::setGPUMode(const bool & newMode) throw(std::logic_error)
         if(_gpuMode)
             _updateCLInput();
         else
-            _fetchResults();
+            _fetchCLResults();
     }
 }
 
@@ -275,7 +272,7 @@ void ParticleSimulator::printSelf()
 void ParticleSimulator::printParticles()
 {
     if(_gpuMode)
-        _fetchResults();
+        _fetchCLResults();
 
     QVector<float> & input = *_input_p;
     for(int i = 0; i < input.size(); i+=DefaultParameters::CLOffset)
@@ -294,7 +291,7 @@ void ParticleSimulator::printParticles()
 void ParticleSimulator::printCLVectors()
 {
     if(_gpuMode)
-        _fetchResults();
+        _fetchCLResults();
 
     std::cout << "Content of input:" << std::endl;
     for(int i = 0; i < _input.size(); i+=DefaultParameters::CLOffset)
@@ -335,9 +332,9 @@ void ParticleSimulator::_swapVectors()
     {
         QCLVector<float> * temp;
 
-        temp = _clInput_p;
-        _clInput_p = _clOutput_p;
-        _clOutput_p = temp;
+        temp = _openClInput;
+        _openClInput = _openClOutput;
+        _openClOutput = temp;
     }
     else
     {
@@ -349,9 +346,9 @@ void ParticleSimulator::_swapVectors()
     }
 }
 
-void ParticleSimulator::_fetchResults()
+void ParticleSimulator::_fetchCLResults()
 {
-    QCLVector<float> & clOutput = *_clOutput_p;
+    QCLVector<float> & clOutput = *_openClOutput;
     QVector<float> & output = *_output_p;
     for(int i=0; i < clOutput.size(); ++i)
     {
@@ -361,7 +358,7 @@ void ParticleSimulator::_fetchResults()
 
 void ParticleSimulator::_updateCLInput()
 {
-    QCLVector<float> & clInput = *_clInput_p;
+    QCLVector<float> & clInput = *_openClInput;
     QVector<float> & input = *_input_p;
     for(int i=0; i < clInput.size(); ++i)
     {
@@ -371,8 +368,8 @@ void ParticleSimulator::_updateCLInput()
 
 void ParticleSimulator::_setKernelArgs(QCLKernel & kernel)
 {
-    kernel.setArg(0, *_clInput_p);
-    kernel.setArg(1, *_clOutput_p);
+    kernel.setArg(0, *_openClInput);
+    kernel.setArg(1, *_openClOutput);
 
     kernel.setArg(2, _env.getXMin());
     kernel.setArg(3, _env.getXMax());
@@ -380,8 +377,8 @@ void ParticleSimulator::_setKernelArgs(QCLKernel & kernel)
     kernel.setArg(5, _env.getYMax());
     kernel.setArg(6, _env.getZMin());
     kernel.setArg(7, _env.getZMax());
-    kernel.setArg(8, (unsigned int)this->size());
-    kernel.setArg(9, (unsigned int)_cstep);
+    kernel.setArg(8, this->size());
+    kernel.setArg(9, _cstep);
     kernel.setArg(10, _timestep);
     kernel.setArg(11, _particleMass);
     kernel.setArg(12, _coeff_d);
@@ -392,25 +389,8 @@ void ParticleSimulator::_setKernelArgs(QCLKernel & kernel)
 
 void ParticleSimulator::_gpuStep()
 {
-    _clKernel.setArg(0, *_clInput_p);
-    _clKernel.setArg(1, *_clOutput_p);
-
-    _clKernel.setArg(2, _env.getXMin());
-    _clKernel.setArg(3, _env.getXMax());
-    _clKernel.setArg(4, _env.getYMin());
-    _clKernel.setArg(5, _env.getYMax());
-    _clKernel.setArg(6, _env.getZMin());
-    _clKernel.setArg(7, _env.getZMax());
-    _clKernel.setArg(8, (unsigned int)this->size());
-    _clKernel.setArg(9, (unsigned int)_cstep);
-    _clKernel.setArg(10, _timestep);
-    _clKernel.setArg(11, _particleMass);
-    _clKernel.setArg(12, _coeff_d);
-    _clKernel.setArg(13, _coeff_k);
-    _clKernel.setArg(14, _coeff_mu);
-    _clKernel.setArg(15, _coeff_rho0);
-//    _setKernelArgs(_clKernel);
-    _clKernel.run();
+    _setKernelArgs(_openClTranslationKernel);
+    _openClTranslationKernel.run();
 }
 
 void ParticleSimulator::_computeDensities()
@@ -560,7 +540,7 @@ void ParticleSimulator::_computeSmoothingDistance()
 
     if(_gpuMode)
     {
-        QCLVector<float> & input = *_clInput_p;
+        QCLVector<float> & input = *_openClInput;
         if(input.size() >= DefaultParameters::CLOffset)
         {
             min << input[0] << input[1] << input[2];
@@ -636,12 +616,21 @@ void ParticleSimulator::restart()
 {
     _cstep = 0;
 
-    for(int i = 0; i < _input.size(); ++i)
+    if(_gpuMode)
     {
-        _input[i] = _initial[i];
-        _output[i] =_initial[i];
-        _clInput[i] = _initial[i];
-        _clOutput[i] =_initial[i];
+        for(int i = 0; i < _input.size(); ++i)
+        {
+            (*_openClInput)[i] = _initial[i];
+            (*_openClOutput)[i] =_initial[i];
+        }
+    }
+    else
+    {
+        for(int i = 0; i < _input.size(); ++i)
+        {
+            _input[i] = _initial[i];
+            _output[i] =_initial[i];
+        }
     }
 
     this->draw();
@@ -659,12 +648,22 @@ void ParticleSimulator::reset()
     _coeff_mu = DefaultParameters::Coeff_mu;
     _coeff_rho0 = DefaultParameters::Rho0;
 
-    for(int i = 0; i < _input.size(); ++i)
+
+    if(_gpuMode)
     {
-        _input[i] = _initial[i];
-        _output[i] =_initial[i];
-        _clInput[i] = _initial[i];
-        _clOutput[i] =_initial[i];
+        for(int i = 0; i < _openClInput->size(); ++i)
+        {
+            (*_openClInput)[i] = _initial[i];
+            (*_openClOutput)[i] =_initial[i];
+        }
+    }
+    else
+    {
+        for(int i = 0; i < _input.size(); ++i)
+        {
+            _input[i] = _initial[i];
+            _output[i] =_initial[i];
+        }
     }
 
     this->draw();
@@ -722,7 +721,7 @@ void ParticleSimulator::draw()
 
     if(_gpuMode)
     {
-        QCLVector<float> & input = *_clInput_p;
+        QCLVector<float> & input = *_openClInput;
 
         glPushMatrix();
         glColor3f(0.6, 0.6, 0.6);

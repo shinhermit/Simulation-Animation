@@ -27,9 +27,11 @@ public:
     ~ParticleSimulator();
 
     /// \brief Sets a context for GPU computation and activate GPU mode.
-    virtual void initialize(const int & workSize) throw(std::runtime_error);
+    virtual void initialize(const unsigned int & workSize, QCLContext * openClContext=NULL,
+                            QCLVector<float> * openClInput=NULL,
+                            QCLVector<float> * openClOutput=NULL) throw(std::runtime_error);
     /// \brief Creates the particules handled by this simulator.
-    virtual void createParticles();
+    virtual void createParticles(const unsigned int & nbItems);
 
 signals:
     /// \brief Informs the view that the smoothing distance has been programatically changed.
@@ -114,15 +116,15 @@ protected:
     //*********** OpenCl *********
     bool _gpuMode; /*!< Tells if GPU computation is activated */
 
-    QCLContext _clContext; /*!< Holds the opencl context */
-    QCLProgram _clProgram; /*!< The opencl program */
-    QCLKernel _clKernel; /*!< Kernel for positions computation in GPU */
+    // The following 3 pointers are received from class Project
+    // No need for memory cleaning
+    QCLContext * _openClContext; /*!< Holds the opencl context */
+    QCLVector<float> * _openClInput; /*!< Holds the GPU inputs */
+    QCLVector<float> * _openClOutput; /*!< Holds the GPU outputs */
 
-    // The structure of the following clVectors is the same as the coresponding QVectors above
-    QCLVector<float> _clInput; /*!< Holds the GPU inputs */
-    QCLVector<float> _clOutput; /*!< Holds the GPU outputs */
-    QCLVector<float> * _clInput_p; /*!< Used to swap input and output */
-    QCLVector<float> * _clOutput_p; /*!< Used to swap input and output */
+    QCLProgram _openClProgram; /*!< The opencl program */
+    QCLKernel _openClDensityKernel; /*!< Kernel for densities computation in GPU */
+    QCLKernel _openClTranslationKernel; /*!< Kernel for positions computation in GPU */
 
     //***** Parameters for Navier-Stokes equations ******
     float _coeff_d; /*!< Maximal influence distance between particles */
@@ -155,7 +157,7 @@ private:
     /// \brief Sets the constant values that are to be passed to GPU kernel
     void _setKernelArgs(QCLKernel & kernel);
     /// \brief Copies the results of GPU computation from CLVector to QVector
-    void _fetchResults();
+    void _fetchCLResults();
     /// \brief Copies the results of CPU computation from QVector to CLVector
     void _updateCLInput();
 

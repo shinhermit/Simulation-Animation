@@ -10,7 +10,15 @@ private:
     ProjectView * _view;
     ParticleSimulator * _simulator;
 
-    void _configOpenCL();
+    QCLContext _openClContext;
+
+    // Vectors that will hold particle dynamic properties
+    // Each particle is represented by 8 contiguous values
+    //   <px,py,pz, vx,vy,vz, density,pressure>
+    QCLVector<float> _openClInput;
+    QCLVector<float> _openClOutput;
+
+    void _configOpenCL(const unsigned int & nbItems);
     void _setView();
     void _setSimulator(const unsigned int & nbItems, QGLViewer *viewer);
 
