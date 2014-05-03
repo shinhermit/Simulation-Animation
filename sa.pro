@@ -10,7 +10,7 @@ QMAKE_CXXFLAGS += -Wno-write-strings
 QMAKE_CXXFLAGS_DEBUG += -Wno-deprecated
 QMAKE_CXXFLAGS_RELEASE += -Wno-deprecated
 
-HEADERS += wlCore.h wlMesh.h wlGround.h\
+HEADERS +=\
     ParticleSimulator.h \
     SPHKernel.h \
     SpikyKernel.h \
@@ -26,7 +26,7 @@ HEADERS += wlCore.h wlMesh.h wlGround.h\
     Simulator.h \
     Viewer.h \
     Environment.h
-SOURCES += sa.cxx wlCore.cxx wlMesh.cxx wlGround.cxx\
+SOURCES += sa.cxx\
     ParticleSimulator.cpp \
     SPHKernel.cpp \
     SpikyKernel.cpp \

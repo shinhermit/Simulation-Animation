@@ -1,8 +1,7 @@
 #include "Simulator.h"
 
-Simulator::Simulator(int debug, QGLViewer *viewer, QVector<AnimatedObject*> * items)
-    : wlCore(debug),
-      _items(*items),
+Simulator::Simulator(QGLViewer *viewer, QVector<AnimatedObject*> * items)
+    : _items(*items),
       _viewer(viewer)
 {
     _clear();
@@ -33,15 +32,15 @@ void Simulator::_clear()
 
 void Simulator::printSelf()
 {
-    this->Print("Simulation en cours :");
-    this->Print("  Pas de temps : %lf", _timestep);
-    this->Print("  Nombre de pas de temps : %d", _nsteps);
-    this->Print("  Pas de temps courant : %d", _cstep);
+    std::cout << "Simulation en cours :";
+    std::cout << "  Pas de temps : " << _timestep;
+    std::cout << "  Nombre de pas de temps : " << _nsteps;
+    std::cout << "  Pas de temps courant : " << _cstep;
 
-    this->Print("Les objets animes :");
+    std::cout << "Les objets animes :";
     for (int i=0 ; i<_items.size() ; i++)
     {
-        this->Print("  Objet %d :", i);
+        std::cout << "  Objet :" << i;
         _items[i]->printSelf();
     }
 }
@@ -107,8 +106,6 @@ void Simulator::restart()
 
 void Simulator::step()
 {
-    this->Trace("-> step()");
-
     for(int i = 0; i < _items.size(); ++i)
     {
         _items[i]->step();
@@ -119,28 +116,18 @@ void Simulator::step()
     if(_cstep > _nsteps)
         _timer->stop();
 
-    this->Trace("<- step()");
-
     this->draw();
     emit requestUpdateGL();
 }
 
 void Simulator::play()
 {
-    this->Trace("-> play() %d %d", _cstep, _nsteps);
-
     _timer->start();
-
-    this->Trace("<- play()");
 }
 
 void Simulator::stop()
 {
-    this->Trace("-> stop()");
-
     _timer->stop();
-
-    this->Trace("<- stop()");
 }
 
 void Simulator::_setupScene()

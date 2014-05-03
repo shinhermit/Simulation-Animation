@@ -4,12 +4,10 @@
 #include <QObject>
 #include <qglviewer.h>
 
-#include "wlCore.h"
-#include "wlSimulationEnvironment.h"
 #include "AnimatedObject.h"
 #include "Environment.h"
 
-class Simulator : public QObject, public wlCore
+class Simulator : public QObject
 {
     Q_OBJECT
 
@@ -18,7 +16,7 @@ public:
     /// <em>viewer</em> OpenGL viewer that is to be associated with the simulator.
     /// <em>environment</em> Motion-less object in the simulation.
     /// <em>items</em> Animated objects.
-    Simulator(int debug=0, QGLViewer *viewer=NULL, QVector<AnimatedObject*> * items=NULL);
+    Simulator(QGLViewer *viewer=NULL, QVector<AnimatedObject*> * items=NULL);
     /// Destructor.
     virtual ~Simulator();
     /// \brief Needed for wlCore inheritance.

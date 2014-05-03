@@ -15,14 +15,14 @@ class ParticleSimulator : public Simulator
     Q_OBJECT
 
 public:
-    ParticleSimulator(int debug=0, QGLViewer *viewer=NULL);
+    ParticleSimulator(QGLViewer *viewer=NULL);
 
     /// \brief Sets a context for GPU computation and activate GPU mode.
     virtual void setOpenClContext(const unsigned int & workSize, QCLContext * openClContext=NULL,
                                   QCLVector<float> * openClInput=NULL,
                                   QCLVector<float> * openClOutput=NULL) throw(std::runtime_error);
     /// \brief Creates the particules handled by this simulator.
-    virtual void createParticles(const unsigned int & nbItems, const int & debug);
+    virtual void createParticles(const unsigned int & nbItems);
 
 public slots:
     /// \brief Tells if GPU computation is active.

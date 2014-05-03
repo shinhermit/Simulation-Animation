@@ -1,8 +1,7 @@
 #include "Particle.h"
 
-Particle::Particle(const QVector<AnimatedObject *> & everyone, const Environment & env, int debug)
-    : AnimatedObject(debug),
-      _env(env),
+Particle::Particle(const QVector<AnimatedObject *> & everyone, const Environment & env)
+    : _env(env),
       _everyone(everyone)
 {
     _clear();
@@ -169,8 +168,8 @@ void Particle::printSelf() const
 {
     AnimatedObject::printSelf();
 
-    ::fprintf(::stderr, "Density : %.2f\n", _density);
-    ::fprintf(::stderr, "Pressure: %.2f\n", _pressure);
+    std::cout << "Density : " << _density << std::endl;
+    std::cout << "Pressure: " << _pressure << std::endl;
 }
 
 void Particle::step()

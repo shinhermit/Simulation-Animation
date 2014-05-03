@@ -1,18 +1,13 @@
 #include "AnimatedObject.h"
 
-AnimatedObject::AnimatedObject(int debug)
-    :wlCore(debug)
+AnimatedObject::AnimatedObject()
 {
-    this->Trace("-> AnimatedObject()");
-
     _initAcc << 0.0 << 0.0 << 0.0;
     _initVel << 0.0 << 0.0 << 0.0;
     _initPos << 0.0 << 0.0 << 0.0;
     _tVec << 0.0 << 0.0 << 0.0;
 
     _clear();
-
-    this->Trace("<- AnimatedObject()");
 }
 
 void AnimatedObject::_clear()
@@ -24,16 +19,11 @@ void AnimatedObject::_clear()
     _vel = _initVel;
     _acc = _initAcc;
 
-    this->Modified("Position");
 }
 
 AnimatedObject::~AnimatedObject()
 {}
 
-char *AnimatedObject::getClassName() const
-{
-    return "AnimatedObject";
-}
 
 void AnimatedObject::setTimeStep(const float &  timestep)
 {
@@ -70,10 +60,10 @@ void AnimatedObject::printSelf() const
 {
     QVector<float> pos = getPosition();
 
-    ::fprintf(::stderr, "Initial Position : (%.2f, %.2f, %.2f)\n", _initPos[0], _initPos[1], _initPos[2]);
-    ::fprintf(::stderr, "INitial Speed : (%.2f, %.2f, %.2f)\n", _initVel[0], _initVel[1], _initVel[2]);
-    ::fprintf(::stderr, "Current Speed : (%.2f, %.2f, %.2f)\n", _vel[0], _vel[1], _vel[2]);
-    ::fprintf(::stderr, "Current Potision : (%.2f, %.2f, %.2f)\n", pos[0], pos[1], pos[2]);
+    std::cout << "Initial Position : ("<< _initPos[0] << ", "<< _initPos[1] << ", " << _initPos[2] << ")" << std::endl;
+    std::cout << "INitial Speed : ("<< _initVel[0] << ", "<< _initVel[1] << ", "<< _initVel[2] << ")" << std::endl;
+    std::cout << "Current Speed : ("<< _vel[0] << ", "<< _vel[1] << ", "<< _vel[2] << ")" << std::endl;
+    std::cout << "Current Potision : ("<< pos[0] << ", "<< pos[1] << ", "<< pos[2] << ")" << std::endl;
 }
 
 void AnimatedObject::setInitialPosition(const float & x, const float & y, const float & z)
@@ -90,9 +80,6 @@ void AnimatedObject::setPosition(const float & x, const float & y, const float &
     _tVec[0] += x - p[0];
     _tVec[1] += y - p[1];
     _tVec[2] += z - p[2];
-
-    this->Modified("Position");
-    this->Modified("DisplayList");
 }
 
 void AnimatedObject::setInitialVelocity(const float & vX, const float & vY, const float & vZ)

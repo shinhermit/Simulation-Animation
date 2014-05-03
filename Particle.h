@@ -12,7 +12,7 @@
 class Particle : public AnimatedObject
 {
 public:
-    Particle(const QVector<AnimatedObject*> & everyone, const Environment & env, int debug=0);
+    Particle(const QVector<AnimatedObject*> & everyone, const Environment & env);
 
     /// \brief Defines the mass of the particle
     virtual void setMass(const float & mass) throw(std::invalid_argument);
