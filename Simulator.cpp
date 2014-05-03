@@ -80,7 +80,9 @@ void Simulator::setNumberOfTimeSteps(const int & nbSteps)
 
 void Simulator::reset()
 {
-    _clear();
+    _nsteps = DefaultParameters::NbSteps;
+    _timestep = DefaultParameters::TimeStep;
+    _cstep = 0;
 
     for(int i = 0; i < _items.size(); ++i)
     {
