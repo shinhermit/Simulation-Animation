@@ -379,33 +379,38 @@ void ParticleSimulator::_computeInfluences(const int & i, QVector<float> & gradP
     QCLVector<float> & clInput = *_clInput_p;
     QCLVector<float> & clOutput = *_clOutput_p;
 
-    gradPressure << 0 << 0 << 0;
-    speedLaplacian << 0 << 0 << 0;
+    gradPressure.resize(3);
+    gradPressure.fill(0);
+    speedLaplacian.resize(3);
+    speedLaplacian.fill(0);
 
     for(j=0; j < clInput.size(); j+=DefaultParameters::CLOffset)
     {
-        R_ij[0] = clInput[i] - clInput[j];
-        R_ij[1] = clInput[i+1] - clInput[j+1];
-        R_ij[2] = clInput[i+2] - clInput[j+2];
+        if(j != i)
+        {
+            R_ij[0] = clInput[i] - clInput[j];
+            R_ij[1] = clInput[i+1] - clInput[j+1];
+            R_ij[2] = clInput[i+2] - clInput[j+2];
 
-        // Gradient de la pression
-        coeff = 0;
-        if(clOutput[j+6] != 0)
-            coeff = _particleMass * (clOutput[i+7] + clOutput[j+7]) / (2*clOutput[j+6]);
-        gradKernel = SPHKernels::spiky(_coeff_d, R_ij);
+            // Gradient de la pression
+            coeff = 0;
+            if(clOutput[j+6] != 0)
+                coeff = _particleMass * (clOutput[i+7] + clOutput[j+7]) / (2*clOutput[j+6]);
+            gradKernel = SPHKernels::spiky(_coeff_d, R_ij);
 
-        gradPressure[0] += coeff*gradKernel[0];
-        gradPressure[1] += coeff*gradKernel[1];
-        gradPressure[2] += coeff*gradKernel[2];
+            gradPressure[0] += coeff*gradKernel[0];
+            gradPressure[1] += coeff*gradKernel[1];
+            gradPressure[2] += coeff*gradKernel[2];
 
-        //Laplacien de la vitesse
-        coeff = 0;
-        if(clOutput[j+6] != 0)
-            coeff = _particleMass * SPHKernels::visco(_coeff_d, R_ij) / clOutput[j+6];
+            //Laplacien de la vitesse
+            coeff = 0;
+            if(clOutput[j+6] != 0)
+                coeff = _particleMass * SPHKernels::visco(_coeff_d, R_ij) / clOutput[j+6];
 
-        speedLaplacian[0] += coeff*(clInput[i+3] - clInput[j+3]);
-        speedLaplacian[1] += coeff*(clInput[i+4] - clInput[j+4]);
-        speedLaplacian[2] += coeff*(clInput[i+5] - clInput[j+5]);
+            speedLaplacian[0] += coeff*(clInput[i+3] - clInput[j+3]);
+            speedLaplacian[1] += coeff*(clInput[i+4] - clInput[j+4]);
+            speedLaplacian[2] += coeff*(clInput[i+5] - clInput[j+5]);
+        }
     }
     std::cout << "ParticleSimulator::_computeInfluences : processing particle " << i << " last indexe is " << " " << j << std::endl;
 }
@@ -557,7 +562,7 @@ void ParticleSimulator::reset()
     for(int i = 0; i < _clInput.size(); ++i)
     {
         _clInput[i] = _initial[i];
-        _clOutput[i] =_initial[i];
+        _clOutput[i] = _initial[i];
     }
 
     this->draw();
@@ -627,7 +632,7 @@ void ParticleSimulator::draw()
     glPopMatrix();
 
     glEnable(GL_LIGHT0);
-    float light_position[] = { 0, -100, 100, 1.0 };
+    float light_position[] = { 0, -10, 10, 1.0 };
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
     if (_first)
