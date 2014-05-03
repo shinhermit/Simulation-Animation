@@ -12,27 +12,20 @@ QMAKE_CXXFLAGS_RELEASE += -Wno-deprecated
 
 HEADERS +=\
     ParticleSimulator.h \
-    Particle.h \
     SPHKernels.h \
     ProjectView.h \
     Project.h \
     sa.h \
     DefaultParameters.h \
-    AnimatedObject.h \
-    Simulator.h \
-    Viewer.h \
     Environment.h
-SOURCES += sa.cxx\
+SOURCES +=\
     ParticleSimulator.cpp \
-    Particle.cpp \
     ProjectView.cpp \
     Project.cpp \
     DefaultParameters.cpp \
-    AnimatedObject.cpp \
-    Simulator.cpp \
-    Viewer.cpp \
     Environment.cpp \
-    SPHKernels.cpp
+    SPHKernels.cpp \
+    sa.cpp
 
 
   QT       += core
