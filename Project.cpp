@@ -49,6 +49,6 @@ void Project::_setView()
 void Project::_setSimulator(const unsigned int & nbItems, QGLViewer *viewer)
 {
     _simulator = new ParticleSimulator(viewer);
-    _simulator->setOpenClContext(nbItems);
+    _simulator->initialize(nbItems);
     _simulator->createParticles();
 }

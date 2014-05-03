@@ -202,13 +202,13 @@ void debug_fill_pos(__global __write_only float * vector)
   unsigned int cstep, float timestep, float particleMass, float maxDist, float coeff_k,
   float coeff_mu, float refDensity]*/
 __kernel void gpu_step(__global __read_only float * input, __global __write_only float * output, float envXMin, float envXMax, float envYMin, float envYMax, float envZMin, float envZMax, unsigned int nbItems,
-		       unsigned int cstep, float timestep, float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity)
+												 unsigned int cstep, float timestep, float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity)
 {
-  float3 envMin = (float3)(envXMin, envYMin, envZMin);
-  float3 envMax = (float3)(envXMax, envYMax, envZMax);
-  compute_density(input, output, nbItems, particleMass, maxDist, coeff_k, refDensity);
-  barrier(CLK_GLOBAL_MEM_FENCE);
-  compute_translation(input, output, envMin, envMax, cstep, timestep, nbItems, particleMass, maxDist, coeff_mu);
+  /* float3 envMin = (float3)(envXMin, envYMin, envZMin); */
+  /* float3 envMax = (float3)(envXMax, envYMax, envZMax); */
+  /* compute_density(input, output, nbItems, particleMass, maxDist, coeff_k, refDensity); */
+  /* barrier(CLK_GLOBAL_MEM_FENCE); */
+  /* compute_translation(input, output, envMin, envMax, cstep, timestep, nbItems, particleMass, maxDist, coeff_mu); */
 
   /* debug_fill_pos(output); */
 }

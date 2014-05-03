@@ -12,6 +12,12 @@
 #include "Particle.h"
 #include "DefaultParameters.h"
 
+/// Notes:
+/// . we observed that trying to use QCLVector when in CPU memory space causes segfaults.
+/// This observation came out because we tried to use only QCLVector, even when computing in CPU,
+/// thus avoiding vector copies. We finally used QVector for CPU computing.
+/// . When the number of particle is not very high, the random positionment of particle doesn't work fine.
+/// We added the messages to slow it down.
 class ParticleSimulator : public QObject
 {
     Q_OBJECT
@@ -21,7 +27,7 @@ public:
     ~ParticleSimulator();
 
     /// \brief Sets a context for GPU computation and activate GPU mode.
-    virtual void setOpenClContext(const int & workSize) throw(std::runtime_error);
+    virtual void initialize(const int & workSize) throw(std::runtime_error);
     /// \brief Creates the particules handled by this simulator.
     virtual void createParticles();
 
@@ -48,9 +54,9 @@ public slots:
     int clVectorsSize()const;
 
     /// \brief Debug tool: prints particle properties to std::err
-    void printParticles()const;
+    void printParticles();
     /// \brief Debug tool: prints the contents of openclVector to std::err
-    void printCLVectors()const;
+    void printCLVectors();
 
     /// \brief Defines the number steps of the simulation.
     void setNumberOfTimeSteps(const int & nbSteps);
@@ -94,26 +100,29 @@ protected:
     int _nsteps; /*!< The number of steps of the simulation */
     int _cstep; /*!< The steps counter */
     QTimer * _timer; /*!< Timer, for simulation playing */
+    bool _first; /*!< Tells if the entire scene has already been set up */
+
+    // Vectors that will hold particle dynamic properties
+    // Each particle is represented by 8 contiguous values
+    //   <px,py,pz, vx,vy,vz, density,pressure>
+    QVector<float> _initial; /*!< Initial kinematic properties, allowing scene reset */
+    QVector<float> _input; /*!< Dynamic properties of the particles as input values */
+    QVector<float> _output;  /*!< Dynamic properties of the particles as output values */
+    QVector<float> * _input_p; /*!< Used to easily swap input and output vectors */
+    QVector<float> * _output_p;  /*!< Used to easily swap input and output vectors */
 
     //*********** OpenCl *********
     bool _gpuMode; /*!< Tells if GPU computation is activated */
-    bool _first; /*!< Tells if the entire scene has already been set up */
 
-    // The following 3 pointers are received from class Project
-    // No need for memory cleaning
     QCLContext _clContext; /*!< Holds the opencl context */
-    // clVectors that will hold particle dynamic properties
-    // we use theses vector even for cpu computation
-    // Each particle is represented by 8 contiguous values
-    //   <px,py,pz, vx,vy,vz, density,pressure>
+    QCLProgram _clProgram; /*!< The opencl program */
+    QCLKernel _clKernel; /*!< Kernel for positions computation in GPU */
+
+    // The structure of the following clVectors is the same as the coresponding QVectors above
     QCLVector<float> _clInput; /*!< Holds the GPU inputs */
     QCLVector<float> _clOutput; /*!< Holds the GPU outputs */
     QCLVector<float> * _clInput_p; /*!< Used to swap input and output */
     QCLVector<float> * _clOutput_p; /*!< Used to swap input and output */
-    QVector<float> _initial; /*!< Initial kinematic properties, allowing scene reset */
-
-    QCLProgram _clProgram; /*!< The opencl program */
-    QCLKernel _clKernel; /*!< Kernel for positions computation in GPU */
 
     //***** Parameters for Navier-Stokes equations ******
     float _coeff_d; /*!< Maximal influence distance between particles */
@@ -142,9 +151,13 @@ private:
     /// \brief Dynamically computes the smoothing distance
     void _computeSmoothingDistance();
     /// \brief Swaps the input an output vectors for the next step
-    void _swapCLVectors();
+    void _swapVectors();
     /// \brief Sets the constant values that are to be passed to GPU kernel
     void _setKernelArgs(QCLKernel & kernel);
+    /// \brief Copies the results of GPU computation from CLVector to QVector
+    void _fetchResults();
+    /// \brief Copies the results of CPU computation from QVector to CLVector
+    void _updateCLInput();
 
 
     /// \brief Sets the scene up.
