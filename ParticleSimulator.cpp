@@ -338,6 +338,7 @@ void ParticleSimulator::_setKernelArgs(QCLKernel & kernel)
 void ParticleSimulator::_gpuStep()
 {
     _setKernelArgs(_openClTranslationKernel);
+    _openClTranslationKernel.run();
 
     _fetchResults(*_openClOutput);
     _swapCLVectors();
