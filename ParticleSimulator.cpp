@@ -609,6 +609,7 @@ void ParticleSimulator::step()
         _timer->stop();
 
     //_computeSmoothingDistance(); /* Testing dynamic smoothing length */
+    this->draw();
     emit requestUpdateGL();
 }
 
