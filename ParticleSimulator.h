@@ -9,7 +9,6 @@
 #include "Environment.h"
 
 #include "SPHKernels.h"
-#include "Particle.h"
 #include "DefaultParameters.h"
 
 /// Notes:
