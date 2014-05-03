@@ -5,7 +5,7 @@ class DefaultParameters
 {
 public:
     static const float Gravity;
-    static const short CLOffset;
+    static const short OCLOffset;
 
     static const int WindowSize[2];
     static const float EnvironmentLimits[6];

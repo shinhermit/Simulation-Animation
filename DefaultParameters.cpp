@@ -1,7 +1,7 @@
 #include "DefaultParameters.h"
 
 const float DefaultParameters::Gravity = 9.8;
-const short DefaultParameters::CLOffset = 8;
+const short DefaultParameters::OCLOffset = 8;
 
 const int DefaultParameters::WindowSize[2] = {800, 700};
 const float DefaultParameters::EnvironmentLimits[6] = {-1,1,-1,1,-1,1};
