@@ -71,6 +71,7 @@ void ProjectView::bindSimulator(ParticleSimulator & simu)
     //Simulation Parameters controls
     QObject::connect(_ui->spinBox_mu, SIGNAL(valueChanged(double)), simulator, SLOT(setDynamicViscosityConstant(const double &))); // Coeff mu
     QObject::connect(_ui->spinBox_d, SIGNAL(valueChanged(double)), simulator, SLOT(setSmoothingTolerance(const double &))); // Coeff d
+    QObject::connect(simulator, SIGNAL(smoothingDistanceChanged(double)), _ui->spinBox_d, SLOT(setValue(double))); // Coeff d
     QObject::connect(_ui->spinBox_k, SIGNAL(valueChanged(double)), simulator, SLOT(setPressureToDensityGradientProportionnality(const double &))); // Coeff k
     QObject::connect(_ui->spinBox_rho0, SIGNAL(valueChanged(double)), simulator, SLOT(setReferenceDensity(const double &))); // Ref density
     QObject::connect(_ui->spinBox_mass, SIGNAL(valueChanged(double)), simulator, SLOT(setParticlesMass(const double &))); // Particles mass

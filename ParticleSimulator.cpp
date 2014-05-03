@@ -374,6 +374,38 @@ void ParticleSimulator::_cpuStep()
     }
 }
 
+
+void ParticleSimulator::_computeSmoothingDistance()
+{
+    QVector<float> pos(3);
+    QVector<float> min(3), max(3);
+    float diameter;
+    Particle * particle;
+
+    if(_items.size() > 0)
+    {
+        min = max = _items[0]->getPosition();
+        for(unsigned int i=1; i < (unsigned int)_items.size(); ++i)
+        {
+            particle = dynamic_cast<Particle*>(_items[i]);
+            if(particle)
+            {
+                pos = particle->getPosition();
+
+                if(pos[0] < min[0] && pos[1] < min[1] && pos[2] < min[2])
+                    min = pos;
+                else if(pos[0] > max[0] && pos[1] > max[1] && pos[2] > max[2])
+                    max = pos;
+            }
+        }
+
+        diameter = ::sqrt((max[0]-min[0])*(max[0]-min[0]) + (max[1]-min[1])*(max[1]-min[1]) + (max[2]-min[2])*(max[2]-min[2]));
+        _coeff_d = 10*diameter / _items.size();
+
+        emit smoothingDistanceChanged(_coeff_d);
+    }
+}
+
 void ParticleSimulator::step()
 {
     if(_gpuMode)
@@ -391,7 +423,7 @@ void ParticleSimulator::step()
     if(_cstep > _nsteps)
         _timer->stop();
 
-    //this->draw();
+    //_computeSmoothingDistance(); /* Testing dynamic smoothing length */
     emit requestUpdateGL();
 }
 

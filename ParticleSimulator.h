@@ -24,6 +24,9 @@ public:
     /// \brief Creates the particules handled by this simulator.
     virtual void createParticles(const unsigned int & nbItems);
 
+signals:
+    void smoothingDistanceChanged(double);
+
 public slots:
     /// \brief Tells if GPU computation is active.
     bool isGPUMode()const;
@@ -94,6 +97,8 @@ private:
     void _cpuStep();
     /// \brief Compute one simulation step on GPU
     void _gpuStep();
+    /// \brief Compute the dynamic smoothing distance
+    void _computeSmoothingDistance();
     /// \brief Copies the output of GPU computation to particles
     void _fetchCLResults(const QCLVector<float> & openClVector);
     /// \brief Updates the openCL input vector when switching to GPU mode
