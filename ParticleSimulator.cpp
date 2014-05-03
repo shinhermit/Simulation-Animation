@@ -331,10 +331,6 @@ void ParticleSimulator::_gpuStep()
 
 void ParticleSimulator::_cpuStep()
 {
-    // !! Move the 3 kernels to attributes later !!
-    Poly6Kernel poly6(this->_coeff_d);
-    SpikyKernel spiky(this->_coeff_d);
-    ViscosityKernel viscy(this->_coeff_d);
 
     Particle * particle;
 
@@ -345,7 +341,7 @@ void ParticleSimulator::_cpuStep()
 
         if(particle)
         {
-            particle->computeDensity(poly6, this->_coeff_rho0, this->_coeff_k);
+            particle->computeDensity(_coeff_d, _coeff_rho0, _coeff_k);
         }
 
     }
@@ -357,7 +353,7 @@ void ParticleSimulator::_cpuStep()
 
         if(particle)
         {
-            particle->computeTranslation(spiky, viscy, this->_coeff_mu);
+            particle->computeTranslation(_coeff_d, this->_coeff_mu);
         }
     }
 }

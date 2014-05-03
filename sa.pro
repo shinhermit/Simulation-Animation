@@ -12,10 +12,6 @@ QMAKE_CXXFLAGS_RELEASE += -Wno-deprecated
 
 HEADERS +=\
     ParticleSimulator.h \
-    SPHKernel.h \
-    SpikyKernel.h \
-    Poly6Kernel.h \
-    ViscosityKernel.h \
     Particle.h \
     SPHKernels.h \
     ProjectView.h \
@@ -28,10 +24,6 @@ HEADERS +=\
     Environment.h
 SOURCES += sa.cxx\
     ParticleSimulator.cpp \
-    SPHKernel.cpp \
-    SpikyKernel.cpp \
-    Poly6Kernel.cpp \
-    ViscosityKernel.cpp \
     Particle.cpp \
     ProjectView.cpp \
     Project.cpp \
@@ -39,7 +31,8 @@ SOURCES += sa.cxx\
     AnimatedObject.cpp \
     Simulator.cpp \
     Viewer.cpp \
-    Environment.cpp
+    Environment.cpp \
+    SPHKernels.cpp
 
 
   QT       += core
