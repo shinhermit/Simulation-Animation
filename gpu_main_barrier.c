@@ -1,29 +1,29 @@
-float sph_poly6(float maxDist, float3 R_ij)
+float sph_poly6(float h, float3 R_ij)
 {
-    float sqrDist = R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z;
-    float sqrMaxDist = maxDist*maxDist;
+    float r2 = R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z;
+    float r = sqrt(r2);
+    float h2 = h*h;
 
-    if(sqrDist <= sqrMaxDist && maxDist != 0.)
+    if(r <= h)
     {
-        return pown(sqrMaxDist - sqrDist, 3) / (3.1415 * pown(maxDist, 8));
+        return 315.*pown(h2 - r2, 3) / (64. * M_PI_F * pown(h, 9));
     }
 
     else
         return 0.;
 }
 
-float3 sph_spiky_gradient(float maxDist, float3 R_ij)
+float3 sph_spiky(float h, float3 R_ij)
 {
   float3 res;
   float coef;
-    float dist = sqrt(R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z);
-    float q = dist/maxDist;
+    float r = sqrt(R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z);
 
     res.x = res.y = res.z = 0.;
 
-    if(dist <= maxDist && maxDist != 0.)
+    if(r <= h)
     {
-        coef = -30*pown(1-q, 2) / (3.1415*q*pown(maxDist, 4));
+        coef = 45.*pown(h-r, 3) / (r*M_PI_F*pown(h, 6));
 
 
         res.x = coef*R_ij.x;
@@ -34,14 +34,13 @@ float3 sph_spiky_gradient(float maxDist, float3 R_ij)
     return res;
 }
 
-float sph_viscosity_laplacian(float maxDist, float3 R_ij)
+float sph_visco(float h, float3 R_ij)
 {
-    float dist = sqrt(R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z);
-    float q = dist/maxDist;
+    float r = sqrt(R_ij.x*R_ij.x + R_ij.y*R_ij.y + R_ij.z*R_ij.z);
 
-    if(dist <= maxDist && maxDist != 0.)
+    if(r <= h)
     {
-        return 40*(1 - q) / (3.1415*pown(maxDist, 4));
+        return 45.*(h - r) / (M_PI_F*pown(h, 6));
     }
 
     else
@@ -135,7 +134,7 @@ void compute_translation(__global __read_only float * input, __global __write_on
 	  if(input[hisRhoIndex])
 	    coeff = 0.5 * particleMass * (input[myPresIndex] + input[hisPresIndex]) / input[hisRhoIndex];
 
-	  gradK = sph_spiky_gradient(maxDist, R_ij);
+	  gradK = sph_spiky(maxDist, R_ij);
 
 	  gradP.x += coeff*gradK.x;
 	  gradP.y += coeff*gradK.y;
@@ -144,7 +143,7 @@ void compute_translation(__global __read_only float * input, __global __write_on
 	  //Laplacien de la vitesse
 	  coeff = 0;
 	  if(input[hisRhoIndex])
-	    coeff = particleMass * sph_viscosity_laplacian(maxDist, R_ij) / input[hisRhoIndex];
+	    coeff = particleMass * sph_visco(maxDist, R_ij) / input[hisRhoIndex];
 
 	  laplV.x += coeff*(input[myVelIndex] - input[hisVelIndex]);
 	  laplV.y += coeff*(input[myVelIndex+1] - input[hisVelIndex+1]);
