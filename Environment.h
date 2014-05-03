@@ -8,6 +8,7 @@
 #include <QVector3D>
 #include "DefaultParameters.h"
 
+/// \brief Represents the boundaries of the simulation
 class Environment
 {
 public:
@@ -41,7 +42,7 @@ public:
     void draw()const;
 
 private:
-    QVector<float> _limits;
+    QVector<float> _limits; /*!< Contains 6 values, that represent min and max on each axis */
 };
 
 #endif // ENVIRONMENT_H

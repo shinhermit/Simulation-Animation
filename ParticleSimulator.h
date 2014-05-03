@@ -16,13 +16,12 @@
 /// . we observed that trying to use QCLVector when in CPU memory space causes segfaults.
 /// This observation came out because we tried to use only QCLVector, even when computing in CPU,
 /// thus avoiding vector copies. We finally used QVector for CPU computing.
-/// . When the number of particle is not very high, the random positionment of particle doesn't work fine.
-/// We added the messages to slow it down.
 class ParticleSimulator : public QObject
 {
     Q_OBJECT
 
 public:
+    /// \brief The viewer that will be bound to this simulator
     ParticleSimulator(QGLViewer *viewer=NULL);
     ~ParticleSimulator();
 
@@ -77,11 +76,11 @@ public slots:
     /// \brief Defines the mass of all the particles in the simulation.
     void setParticlesMass(const double & mass) throw(std::invalid_argument);
 
-    /// \reimp
+    /// \brief Sets the dynamic properties of all particle back to their initial values
     virtual void restart();
-    /// \reimp
+    /// \brief Resets the entire simulation, including the controls of the view.
     virtual void reset();
-    /// \reimp
+    /// \brief Computes one step of the simulation
     virtual void step();
     /// \brief Computes several steps of the simulation.
     /// start a timer that will periodically compute one step, until the defined simulation's number of step is reeached.
@@ -92,7 +91,7 @@ public slots:
     /// \brief Draws all objects.
     virtual void draw();
 
-    /// \reimp
+    /// \brief Prints the properties of the simulator
     virtual void printSelf();
 
 protected:
@@ -118,13 +117,12 @@ protected:
 
     // The following 3 pointers are received from class Project
     // No need for memory cleaning
-    QCLContext * _openClContext; /*!< Holds the opencl context */
-    QCLVector<float> * _openClInput; /*!< Holds the GPU inputs */
-    QCLVector<float> * _openClOutput; /*!< Holds the GPU outputs */
+    QCLContext * _clContext; /*!< Holds the opencl context */
+    QCLVector<float> * _clInput; /*!< Holds the GPU inputs */
+    QCLVector<float> * _clOutput; /*!< Holds the GPU outputs */
 
-    QCLProgram _openClProgram; /*!< The opencl program */
-    QCLKernel _openClDensityKernel; /*!< Kernel for densities computation in GPU */
-    QCLKernel _openClTranslationKernel; /*!< Kernel for positions computation in GPU */
+    QCLProgram _clProgram; /*!< The opencl program */
+    QCLKernel _clKernel; /*!< Kernel for positions computation in GPU */
 
     //***** Parameters for Navier-Stokes equations ******
     float _coeff_d; /*!< Maximal influence distance between particles */
@@ -133,7 +131,7 @@ protected:
     float _coeff_rho0; /*!< Reference density (environement density) */
     float _particleMass; /*!< Uniform particles mass */
 
-    /// \reimp
+    /// \brief Set the properties of the simulator to default values
     virtual void _clear();
 
 private:
