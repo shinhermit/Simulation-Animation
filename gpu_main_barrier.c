@@ -70,14 +70,11 @@ void compute_density(__global __read_only float * input, __global __write_only f
       hisRhoIndex = hisVelIndex + 3;
       hisPresIndex = hisRhoIndex + 1;
 
-      if(i != myId)
-        {
-	  R_ij.x = input[myPosIndex] - input[hisPosIndex];
-	  R_ij.y = input[myPosIndex+1] - input[hisPosIndex+1];
-	  R_ij.z = input[myPosIndex+2] - input[hisPosIndex+2];
+      R_ij.x = input[myPosIndex] - input[hisPosIndex];
+      R_ij.y = input[myPosIndex+1] - input[hisPosIndex+1];
+      R_ij.z = input[myPosIndex+2] - input[hisPosIndex+2];
 
-	  density += particleMass * sph_poly6(maxDist, R_ij);
-	}
+      density += particleMass * sph_poly6(maxDist, R_ij);
     }
 
   output[myRhoIndex] = density;
@@ -161,20 +158,20 @@ void compute_translation(__global __read_only float * input, __global __write_on
   ++ cstep;
 
   //La vitesse
-  float3 v0 = (float3)(input[myVelIndex], input[myVelIndex+1], input[myVelIndex+2]); //Save v_0
-
-  output[myVelIndex] = v0.x + acc.x*timestep;
-  output[myVelIndex+1] = v0.y + acc.y*timestep;
-  output[myVelIndex+2] = v0.z + acc.z*timestep;
+  // v = a*t + v0 => Dv = a*Dt
+  // v2 = v1 + Dv => v2 = v1 + a*Dt
+  output[myVelIndex] = input[myVelIndex] + acc.x*timestep;
+  output[myVelIndex+1] = input[myVelIndex+1] + acc.y*timestep;
+  output[myVelIndex+2] = input[myVelIndex+2] + acc.z*timestep;
 
   //La translation
   // x = 1/2*a*t^2 + v_0*t + x_0
   // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
   float time = timestep * cstep;
   float time_p = time - timestep;
-  output[myPosIndex] = input[myPosIndex] + 0.5*acc.x*(time*time - time_p*time_p) + v0.x*timestep;
-  output[myPosIndex+1] = input[myPosIndex+1] + 0.5*acc.y*(time*time - time_p*time_p) + v0.y*timestep;
-  output[myPosIndex+2] = input[myPosIndex+2] + 0.5*acc.z*(time*time - time_p*time_p) + v0.z*timestep;
+  output[myPosIndex] = input[myPosIndex] + 0.5*acc.x*(time*time - time_p*time_p) + input[myVelIndex]*timestep;
+  output[myPosIndex+1] = input[myPosIndex+1] + 0.5*acc.y*(time*time - time_p*time_p) + input[myVelIndex+1]*timestep;
+  output[myPosIndex+2] = input[myPosIndex+2] + 0.5*acc.z*(time*time - time_p*time_p) + input[myVelIndex+2]*timestep;
 }
 
 void applyEnvironmentConstraints(__global __write_only float * output, float3 envMin, float3 envMax, float collisionAttenuation, float environmentPadding)

@@ -409,14 +409,11 @@ void ParticleSimulator::_computeDensities()
         density = 0;
         for(j=0; j < input.size(); j+=DefaultParameters::CLOffset)
         {
-            if(i != j)
-            {
-                R_ij[0] = input[i] - input[j];
-                R_ij[1] = input[i+1] - input[j+1];
-                R_ij[2] = input[i+2] - input[j+2];
+            R_ij[0] = input[i] - input[j];
+            R_ij[1] = input[i+1] - input[j+1];
+            R_ij[2] = input[i+2] - input[j+2];
 
-                density += _particleMass * SPHKernels::poly6(_coeff_d, R_ij);
-            }
+            density += _particleMass * SPHKernels::poly6(_coeff_d, R_ij);
         }
 
         output[i+6] = density;
@@ -532,21 +529,20 @@ void ParticleSimulator::_computeSmoothing(const int & i, const QVector<float> & 
     }
 
     //La vitesse
-    QVector<float> v0;
-    v0 << input[i+3] << input[i+4] << input[i+5]; //Save v_0
-
-    output[i+3] = v0[0] + acc[0]*_timestep;
-    output[i+4] = v0[1] + acc[1]*_timestep;
-    output[i+5] = v0[2] + acc[2]*_timestep;
+    // v = a*t + v0 => Dv = a*Dt
+    // v2 = v1 + Dv => v2 = v1 + a*Dt
+    output[i+3] = input[i+3] + acc[0]*_timestep;
+    output[i+4] = input[i+4] + acc[1]*_timestep;
+    output[i+5] = input[i+5] + acc[2]*_timestep;
 
     //La translation
     // x = 1/2*a*t^2 + v_0*t + x_0
     // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
     float time = _timestep * (_cstep+1);
     float ptime = time - _timestep;
-    output[i] = input[i] + 0.5*acc[0]*(time*time - ptime*ptime) + v0[0]*_timestep;
-    output[i+1] = input[i+1] + 0.5*acc[1]*(time*time - ptime*ptime) + v0[1]*_timestep;
-    output[i+2] = input[i+2] + 0.5*acc[2]*(time*time - ptime*ptime) + v0[2]*_timestep;
+    output[i] = input[i] + 0.5*acc[0]*(time*time - ptime*ptime) + input[i+3]*_timestep;
+    output[i+1] = input[i+1] + 0.5*acc[1]*(time*time - ptime*ptime) + input[i+4]*_timestep;
+    output[i+2] = input[i+2] + 0.5*acc[2]*(time*time - ptime*ptime) + input[i+5]*_timestep;
 
     _applyEnvironmentConstraints(i, output);
 }
