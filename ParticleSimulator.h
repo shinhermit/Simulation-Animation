@@ -139,6 +139,10 @@ private:
     /// \brief Use by _computePositions() to compute influences of pressure and viscosity
     /// \param i indice of the particle on which the influences are computed
     void _computeInfluences(const int & i, QVector<float> & gradPressure, QVector<float> & speedLaplacian);
+    /// \brief Applies the environment boundaries constraints before smoothing computation
+    /// \param i index of the particle
+    /// \param output the dynamic properties vector that currently serves as output
+    void _applyEnvironmentConstraints(const int & i, QVector<float> & output);
     /// \brief Use by _computePositions() to compute kinematic properties base on influences computed by _computeInfluences()
     void _computeSmoothing(const int & i, const QVector<float> & gradPressure, const QVector<float> & speedLaplacian);
     /// \brief CPU computation of the positions for all particles.

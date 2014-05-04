@@ -1,6 +1,8 @@
 #include "DefaultParameters.h"
 
 const float DefaultParameters::Gravity = 9.8;
+const float DefaultParameters::CollisionAttenuation = 0.1;
+const float DefaultParameters::EnvironmentPadding = 0.01;
 const short DefaultParameters::CLOffset = 8;
 
 const int DefaultParameters::WindowSize[2] = {800, 700};

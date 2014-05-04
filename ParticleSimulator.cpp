@@ -178,8 +178,8 @@ int ParticleSimulator::clVectorsSize() const
 
 void ParticleSimulator::setSmoothingTolerance(const double & coeff_d) throw(std::invalid_argument)
 {
-    if(coeff_d <= 0)
-        throw std::invalid_argument("ParticleSimulator::setPressureTolerance: negative of null value given for distance tolerance");
+    if(coeff_d < 0)
+        throw std::invalid_argument("ParticleSimulator::setPressureTolerance: negative value given for distance tolerance");
 
     _coeff_d = coeff_d;
 }
@@ -196,16 +196,16 @@ void ParticleSimulator::setDynamicViscosityConstant(const double & coeff_mu)
 
 void ParticleSimulator::setReferenceDensity(const double & coeff_rho0) throw(std::invalid_argument)
 {
-    if(coeff_rho0 <= 0)
-        throw std::invalid_argument("ParticleSimulator::setReferenceDensity: negative of null value given for density");
+    if(coeff_rho0 < 0)
+        throw std::invalid_argument("ParticleSimulator::setReferenceDensity: negative value given for density");
 
     _coeff_rho0 = coeff_rho0;
 }
 
 void ParticleSimulator::setParticlesMass(const double & mass) throw(std::invalid_argument)
 {
-    if(mass <= 0)
-        throw std::invalid_argument("ParticleSimulator::setReferenceDensity: negative of null value given for density");
+    if(mass < 0)
+        throw std::invalid_argument("ParticleSimulator::setParticlesMass: negative value given for ass");
 
     _particleMass = mass;
 }
@@ -468,11 +468,52 @@ void ParticleSimulator::_computeInfluences(const int & i, QVector<float> & gradP
     }
 }
 
+void ParticleSimulator::_applyEnvironmentConstraints(const int & i, QVector<float> & output)
+{
+    // X
+    if(output[i] < _env.getXMin())
+    {
+        output[i] = _env.getXMin() + DefaultParameters::EnvironmentPadding*(_env.getXMax()-_env.getXMin());
+        output[i+3] = -output[i+3] * DefaultParameters::CollisionAttenuation;
+    }
+
+    if(output[i] > _env.getXMax())
+    {
+        output[i] = _env.getXMax() - DefaultParameters::EnvironmentPadding*(_env.getXMax()-_env.getXMin());
+        output[i+3] = -output[i+3] * DefaultParameters::CollisionAttenuation;
+    }
+
+    // Y
+    if(output[i+1] < _env.getYMin())
+    {
+        output[i+1] = _env.getYMin() + DefaultParameters::EnvironmentPadding*(_env.getYMax()-_env.getYMin());
+        output[i+4] = -output[i+4] * DefaultParameters::CollisionAttenuation;
+    }
+
+    if(output[i+1] > _env.getYMax())
+    {
+        output[i+1] = _env.getYMax() - DefaultParameters::EnvironmentPadding*(_env.getYMax()-_env.getYMin());
+        output[i+4] = -output[i+4] * DefaultParameters::CollisionAttenuation;
+    }
+
+    // Z
+    if(output[i+2] < _env.getZMin())
+    {
+        output[i+2] = _env.getZMin() + DefaultParameters::EnvironmentPadding*(_env.getZMax()-_env.getZMin());
+        output[i+5] = -output[i+5] * DefaultParameters::CollisionAttenuation;
+    }
+
+    if(output[i+2] > _env.getZMax())
+    {
+        output[i+2] = _env.getZMax() - DefaultParameters::EnvironmentPadding*(_env.getZMax()-_env.getZMin());
+        output[i+5] = -output[i+5] * DefaultParameters::CollisionAttenuation;
+    }
+}
+
 void ParticleSimulator::_computeSmoothing(const int & i, const QVector<float> & gradPressure,
                                           const QVector<float> & speedLaplacian)
 {
     QVector<float> acc;
-    float xCstrt, yCstrt, zCstrt;
 
     QVector<float> & input = *_input_p;
     QVector<float> & output = *_output_p;
@@ -480,35 +521,32 @@ void ParticleSimulator::_computeSmoothing(const int & i, const QVector<float> & 
     // The gravity
     acc << 0 << 0 << -9.8;
 
-    // Environment constraints (limits)
-    xCstrt = (input[i] <= _env.getXMin() || input[i]>= _env.getXMax()) ? -1 : 1;
-    yCstrt = (input[i+1] <= _env.getYMin() || input[i+1]>= _env.getYMax()) ? -1 : 1;
-    zCstrt = (input[i+2] <= _env.getZMin()+0.05*(_env.getZMax()-_env.getZMin())) ? -1 : 1;
-
     // The influences
     if(output[i+6] != 0)
     {
-        acc[0] += xCstrt *( (_coeff_mu*speedLaplacian[0] - gradPressure[0])/output[i+6] );
-        acc[1] += yCstrt *( (_coeff_mu*speedLaplacian[1] - gradPressure[1])/output[i+6] );
-        acc[2] += zCstrt *( (_coeff_mu*speedLaplacian[2] - gradPressure[2])/output[i+6] );
+        acc[0] += (_coeff_mu*speedLaplacian[0] - gradPressure[0])/output[i+6];
+        acc[1] += (_coeff_mu*speedLaplacian[1] - gradPressure[1])/output[i+6];
+        acc[2] += (_coeff_mu*speedLaplacian[2] - gradPressure[2])/output[i+6];
     }
 
     //La vitesse
     QVector<float> v0;
     v0 << input[i+3] << input[i+4] << input[i+5]; //Save v_0
 
-    output[i+3] = xCstrt*( v0[0] + acc[0]*_timestep );
-    output[i+4] = yCstrt*( v0[1] + acc[1]*_timestep );
-    output[i+5] = zCstrt*( v0[2] + acc[2]*_timestep );
+    output[i+3] = v0[0] + acc[0]*_timestep;
+    output[i+4] = v0[1] + acc[1]*_timestep;
+    output[i+5] = v0[2] + acc[2]*_timestep;
 
     //La translation
     // x = 1/2*a*t^2 + v_0*t + x_0
     // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
     float time = _timestep * (_cstep+1);
     float ptime = time - _timestep;
-    output[i] = input[i] + xCstrt*( 0.5*acc[0]*(time*time - ptime*ptime) + v0[0]*_timestep );
-    output[i+1] = input[i+1] + yCstrt*( 0.5*acc[1]*(time*time - ptime*ptime) + v0[1]*_timestep );
-    output[i+2] = input[i+2] + zCstrt*( 0.5*acc[2]*(time*time - ptime*ptime) + v0[2]*_timestep );
+    output[i] = input[i] + 0.5*acc[0]*(time*time - ptime*ptime) + v0[0]*_timestep;
+    output[i+1] = input[i+1] + 0.5*acc[1]*(time*time - ptime*ptime) + v0[1]*_timestep;
+    output[i+2] = input[i+2] + 0.5*acc[2]*(time*time - ptime*ptime) + v0[2]*_timestep;
+
+    _applyEnvironmentConstraints(i, output);
 }
 
 void ParticleSimulator::_computePositions()

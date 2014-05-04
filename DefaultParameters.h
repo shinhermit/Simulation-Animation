@@ -6,6 +6,8 @@ class DefaultParameters
 {
 public:
     static const float Gravity; /*!< The acceleration of the gravity */
+    static const float CollisionAttenuation;
+    static const float EnvironmentPadding;
     static const short CLOffset; /*!< The offset in the vectors of dynamic properties */
 
     static const int WindowSize[2]; /*!< width and length of the view */
