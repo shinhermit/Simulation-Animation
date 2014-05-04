@@ -65,16 +65,19 @@ void compute_density(__global __read_only float * input, __global __write_only f
 
   for(i=0; i < nbItems; ++i)
     {
-      hisPosIndex = i*8;
-      hisVelIndex = hisPosIndex + 3;
-      hisRhoIndex = hisVelIndex + 3;
-      hisPresIndex = hisRhoIndex + 1;
+      if(i != myId)
+	{
+	  hisPosIndex = i*8;
+	  hisVelIndex = hisPosIndex + 3;
+	  hisRhoIndex = hisVelIndex + 3;
+	  hisPresIndex = hisRhoIndex + 1;
 
-      R_ij.x = input[myPosIndex] - input[hisPosIndex];
-      R_ij.y = input[myPosIndex+1] - input[hisPosIndex+1];
-      R_ij.z = input[myPosIndex+2] - input[hisPosIndex+2];
+	  R_ij.x = input[myPosIndex] - input[hisPosIndex];
+	  R_ij.y = input[myPosIndex+1] - input[hisPosIndex+1];
+	  R_ij.z = input[myPosIndex+2] - input[hisPosIndex+2];
 
-      density += particleMass * sph_poly6(maxDist, R_ij);
+	  density += particleMass * sph_poly6(maxDist, R_ij);
+	}
     }
 
   output[myRhoIndex] = density;
@@ -145,7 +148,7 @@ void compute_translation(__global __read_only float * input, __global __write_on
   //calcul de l'accélération et de la vitesse
     // The gravity
   acc.x = acc.y = 0;
-  acc.z = -9.8;
+  acc.z = -0.98;  // the size of my world is -1 x 1, which mean effects would almost be invisible
 
   // The influences
   if(output[myRhoIndex])

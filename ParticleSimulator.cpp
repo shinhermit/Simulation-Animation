@@ -409,11 +409,14 @@ void ParticleSimulator::_computeDensities()
         density = 0;
         for(j=0; j < input.size(); j+=DefaultParameters::CLOffset)
         {
-            R_ij[0] = input[i] - input[j];
-            R_ij[1] = input[i+1] - input[j+1];
-            R_ij[2] = input[i+2] - input[j+2];
+            if(j != i)
+            {
+                R_ij[0] = input[i] - input[j];
+                R_ij[1] = input[i+1] - input[j+1];
+                R_ij[2] = input[i+2] - input[j+2];
 
-            density += _particleMass * SPHKernels::poly6(_coeff_d, R_ij);
+                density += _particleMass * SPHKernels::poly6(_coeff_d, R_ij);
+            }
         }
 
         output[i+6] = density;
@@ -518,7 +521,7 @@ void ParticleSimulator::_computeSmoothing(const int & i, const QVector<float> & 
     QVector<float> & output = *_output_p;
 
     // The gravity
-    acc << 0 << 0 << -9.8;
+    acc << 0 << 0 << -0.98; // the size of my world is -1 x 1, which mean effects would almost be invisible
 
     // The influences
     if(output[i+6] != 0)

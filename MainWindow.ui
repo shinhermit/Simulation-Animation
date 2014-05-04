@@ -82,6 +82,9 @@ QGroupBox::title {
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_nbParticle">
+             <property name="styleSheet">
+              <string notr="true">QLabel { color : blue; }</string>
+             </property>
              <property name="text">
               <string>4000</string>
              </property>
@@ -89,6 +92,9 @@ QGroupBox::title {
            </item>
            <item row="2" column="1">
             <widget class="QLabel" name="label_2">
+             <property name="styleSheet">
+              <string notr="true">QLabel { color : blue; }</string>
+             </property>
              <property name="text">
               <string>particles</string>
              </property>
