@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include <QMainWindow>
+#include <QMessageBox>
 
 #include "ui_MainWindow.h"
 #include "ParticleSimulator.h"
@@ -34,6 +35,8 @@ public:
     /// \brief Sets the size of the view
     /// To be fixed, if enough time
     void setSize(int w, int h);
+    /// \brief Updates the text on the UI that informs about the number of particle in the simulation
+    void setSimulationSizeInfo(const float & nbParticle);
 
     /// \brief Binds a simulator to this view, so they can exchange signals;
     void bindSimulator(ParticleSimulator & simu);
@@ -45,6 +48,8 @@ signals:
     void requestGpuMode(bool gpuYesNo);
 
 public slots:
+    /// \brief Displays a message box show the command line options for the project.
+    void showUsage();
     /// \brief Reset the view and emit request signal to the bounded simulator
     void reset();
     /// \brief Updates the QGLViewer

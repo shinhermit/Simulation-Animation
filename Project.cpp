@@ -7,6 +7,7 @@ Project::Project(const unsigned int & nbItems)
     _setSimulator(nbItems, _view->getGLViewer());
 
     _view->bindSimulator(*_simulator);
+    _view->setSimulationSizeInfo(nbItems);
     _view->update();
 }
 

@@ -177,20 +177,6 @@ void compute_translation(__global __read_only float * input, __global __write_on
   output[myPosIndex+2] = input[myPosIndex+2] + 0.5*acc.z*(time*time - time_p*time_p) + v0.z*timestep;
 }
 
-void debug_fill_pos(__global __write_only float * vector)
-{
-  unsigned int myId = get_global_id(0);
-
-  unsigned int myPosIndex = myId*8;
-  unsigned int myVelIndex = myPosIndex + 3;
-  unsigned int myRhoIndex = myVelIndex + 3;
-  unsigned int myPresIndex = myRhoIndex + 1;
-
-  vector[myPosIndex] = 30;
-  vector[myPosIndex+1] = 30;
-  vector[myPosIndex+2] = 30;
-}
-
 void applyEnvironmentConstraints(__global __write_only float * output, float3 envMin, float3 envMax, float collisionAttenuation, float environmentPadding)
 {
   unsigned int i = get_global_id(0) * 8;

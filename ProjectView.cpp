@@ -36,11 +36,17 @@ void ProjectView::setSize(int w, int h)
     this->setMinimumSize(w,h);
 }
 
+void ProjectView::setSimulationSizeInfo(const float &nbParticle)
+{
+    _ui->label_nbParticle->setText(QString::number(nbParticle));
+}
+
 void ProjectView::_handleEvents()
 {
     //Menu actions
-    QObject::connect(_ui->actionQuit, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
-    QObject::connect(_ui->actionReset, SIGNAL(triggered()), this, SLOT(reset()));
+    QObject::connect(_ui->actionQuit, SIGNAL(triggered()), qApp, SLOT(closeAllWindows())); // Quit
+    QObject::connect(_ui->actionReset, SIGNAL(triggered()), this, SLOT(reset())); // Reset
+    QObject::connect(_ui->actionUsage, SIGNAL(triggered()), this, SLOT(showUsage())); // Usage
 }
 
 void ProjectView::_setDefaultParameters()
@@ -98,4 +104,12 @@ void ProjectView::reset()
 void ProjectView::update()
 {
     _ui->viewer->updateGL();
+}
+
+void ProjectView::showUsage()
+{
+    QString usage = "-h, --help : shows usage before starting the app\n";
+    usage += "-n nb, --nb-particles nb : initializes the simulator with nb particles\n";
+    usage += "-w W H, --window-size W H : sets the window's size to W x H\n";
+    QMessageBox::information(this, "Command line options", usage, QMessageBox::Ok);
 }

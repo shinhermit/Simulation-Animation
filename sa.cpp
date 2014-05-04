@@ -55,7 +55,10 @@ void parseCmd(const int & argc, char * argv[], int * size, int & nbItems)
 
 void usage(char * cmd, const bool & terminate)
 {
-    fprintf(stderr, "Usage: %s [-h|--help] [-n|--nb-particles nb]\n", cmd);
+    fprintf(stderr, "Usage: %s [-h|--help] [-n|--nb-particles nb] [-w|--window-size W H] \n %s %s %s", cmd,
+            "-h, --help : shows this usage before starting the app\n",
+            "-n nb, --nb-particles nb : initializes the simulator with nb particles\n",
+            "-w W H, --window-size W H : sets the window's size to W x H\n");
 
     if(terminate)
         exit(-1);

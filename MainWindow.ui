@@ -80,6 +80,20 @@ QGroupBox::title {
              </property>
             </widget>
            </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_nbParticle">
+             <property name="text">
+              <string>4000</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>particles</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -314,8 +328,15 @@ QGroupBox::title {
     <addaction name="separator"/>
     <addaction name="actionStop"/>
    </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionUsage"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSimulation"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -408,6 +429,11 @@ QGroupBox::title {
    </property>
    <property name="shortcut">
     <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="actionUsage">
+   <property name="text">
+    <string>Usage</string>
    </property>
   </action>
  </widget>
