@@ -385,6 +385,8 @@ void ParticleSimulator::_setKernelArgs(QCLKernel & kernel)
     kernel.setArg(13, _coeff_k);
     kernel.setArg(14, _coeff_mu);
     kernel.setArg(15, _coeff_rho0);
+    kernel.setArg(16, DefaultParameters::CollisionAttenuation);
+    kernel.setArg(17, DefaultParameters::EnvironmentPadding);
 }
 
 void ParticleSimulator::_gpuStep()

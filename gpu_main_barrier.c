@@ -84,7 +84,7 @@ void compute_density(__global __read_only float * input, __global __write_only f
   output[myPresIndex] = coeff_k*(density - refDensity);
 }
 
-void compute_translation(__global __read_only float * input, __global __write_only float * output, float3 envMin, float3 envMax, unsigned int cstep, float timestep,
+void compute_translation(__global __read_only float * input, __global __write_only float * output, unsigned int cstep, float timestep,
 			 unsigned int nbItems, float particleMass, float maxDist, float coeff_mu)
 {
   /***** Identify worker *****/
@@ -95,7 +95,6 @@ void compute_translation(__global __read_only float * input, __global __write_on
   float3 gradP, laplV, gradK;
   float3 acc;
   float coeff;
-  float3 cstrt;
 
   unsigned int hisPosIndex;
   unsigned int hisVelIndex;
@@ -151,17 +150,12 @@ void compute_translation(__global __read_only float * input, __global __write_on
   acc.x = acc.y = 0;
   acc.z = -9.8;
 
-  // Environment constraints (limits)
-  cstrt.x = (input[myPosIndex] <= envMin.x || input[myPosIndex]>= envMax.x) ? -1 : 1;
-  cstrt.y = (input[myPosIndex+1] <= envMin.y || input[myPosIndex+1]>= envMax.y) ? -1 : 1;
-  cstrt.z = (input[myPosIndex+2] <= envMin.z+0.05*(envMax.z-envMin.z)) ? -1 : 1;
-
   // The influences
   if(output[myRhoIndex])
   {
-    acc.x += cstrt.x *( (coeff_mu*laplV.x - gradP.x)/output[myRhoIndex] );
-    acc.y += cstrt.y *( (coeff_mu*laplV.y - gradP.y)/output[myRhoIndex] );
-    acc.z += cstrt.z *( (coeff_mu*laplV.z - gradP.z)/output[myRhoIndex] );
+    acc.x += (coeff_mu*laplV.x - gradP.x)/output[myRhoIndex];
+    acc.y += (coeff_mu*laplV.y - gradP.y)/output[myRhoIndex];
+    acc.z += (coeff_mu*laplV.z - gradP.z)/output[myRhoIndex];
   }
 
   ++ cstep;
@@ -169,18 +163,18 @@ void compute_translation(__global __read_only float * input, __global __write_on
   //La vitesse
   float3 v0 = (float3)(input[myVelIndex], input[myVelIndex+1], input[myVelIndex+2]); //Save v_0
 
-  output[myVelIndex] = cstrt.x * ( v0.x + acc.x*timestep );
-  output[myVelIndex+1] = cstrt.y * ( v0.y + acc.y*timestep );
-  output[myVelIndex+2] = cstrt.z * ( v0.z + acc.z*timestep );
+  output[myVelIndex] = v0.x + acc.x*timestep;
+  output[myVelIndex+1] = v0.y + acc.y*timestep;
+  output[myVelIndex+2] = v0.z + acc.z*timestep;
 
   //La translation
   // x = 1/2*a*t^2 + v_0*t + x_0
   // Dx = x2-x1 = 1/2*a*(t2^2 - t1^2) + v_0*(t2 - t1)
   float time = timestep * cstep;
   float time_p = time - timestep;
-  output[myPosIndex] = input[myPosIndex] + cstrt.x*( 0.5*acc.x*(time*time - time_p*time_p) + v0.x*timestep );
-  output[myPosIndex+1] = input[myPosIndex+1] + cstrt.y*( 0.5*acc.y*(time*time - time_p*time_p) + v0.y*timestep );
-  output[myPosIndex+2] = input[myPosIndex+2] + cstrt.z*( 0.5*acc.z*(time*time - time_p*time_p) + v0.z*timestep );
+  output[myPosIndex] = input[myPosIndex] + 0.5*acc.x*(time*time - time_p*time_p) + v0.x*timestep;
+  output[myPosIndex+1] = input[myPosIndex+1] + 0.5*acc.y*(time*time - time_p*time_p) + v0.y*timestep;
+  output[myPosIndex+2] = input[myPosIndex+2] + 0.5*acc.z*(time*time - time_p*time_p) + v0.z*timestep;
 }
 
 void debug_fill_pos(__global __write_only float * vector)
@@ -197,16 +191,62 @@ void debug_fill_pos(__global __write_only float * vector)
   vector[myPosIndex+2] = 30;
 }
 
+void applyEnvironmentConstraints(__global __write_only float * output, float3 envMin, float3 envMax, float collisionAttenuation, float environmentPadding)
+{
+  unsigned int i = get_global_id(0) * 8;
+  
+    // X
+    if(output[i] < envMin.x)
+    {
+        output[i] = envMin.x + environmentPadding*(envMax.x-envMin.x);
+        output[i+3] = -output[i+3] * collisionAttenuation;
+    }
+
+    if(output[i] > envMax.x)
+    {
+        output[i] = envMax.x - environmentPadding*(envMax.x-envMin.x);
+        output[i+3] = -output[i+3] * collisionAttenuation;
+    }
+
+    // Y
+    if(output[i+1] < envMin.y)
+    {
+        output[i+1] = envMin.y + environmentPadding*(envMax.y-envMin.y);
+        output[i+4] = -output[i+4] * collisionAttenuation;
+    }
+
+    if(output[i+1] > envMax.y)
+    {
+        output[i+1] = envMax.y - environmentPadding*(envMax.y-envMin.y);
+        output[i+4] = -output[i+4] * collisionAttenuation;
+    }
+
+    // Z
+    if(output[i+2] < envMin.z)
+    {
+        output[i+2] = envMin.z + environmentPadding*(envMax.z-envMin.z);
+        output[i+5] = -output[i+5] * collisionAttenuation;
+    }
+
+    if(output[i+2] > envMax.z)
+    {
+        output[i+2] = envMax.z - environmentPadding*(envMax.z-envMin.z);
+        output[i+5] = -output[i+5] * collisionAttenuation;
+    }
+}
+
 /*__global __read_only float * input , __global __write_only float * output, constants[float envMinX,
   float envMinY, float envMinZ, float envMaxX, float envMaxY, float envMaxZ,  unsigned int nbItems,
   unsigned int cstep, float timestep, float particleMass, float maxDist, float coeff_k,
   float coeff_mu, float refDensity]*/
 __kernel void gpu_step(__global __read_only float * input, __global __write_only float * output, float envXMin, float envXMax, float envYMin, float envYMax, float envZMin, float envZMax, unsigned int nbItems,
-												 unsigned int cstep, float timestep, float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity)
+		       unsigned int cstep, float timestep, float particleMass, float maxDist, float coeff_k, float coeff_mu, float refDensity, float collisionAttenuation, float environmentPadding)
 {
-  float3 envMin = (float3)(envXMin, envYMin, envZMin);
-  float3 envMax = (float3)(envXMax, envYMax, envZMax);
   compute_density(input, output, nbItems, particleMass, maxDist, coeff_k, refDensity);
   barrier(CLK_GLOBAL_MEM_FENCE);
-  compute_translation(input, output, envMin, envMax, cstep, timestep, nbItems, particleMass, maxDist, coeff_mu);
+  compute_translation(input, output, cstep, timestep, nbItems, particleMass, maxDist, coeff_mu);
+
+  float3 envMin = (float3)(envXMin, envYMin, envZMin);
+  float3 envMax = (float3)(envXMax, envYMax, envZMax);
+  applyEnvironmentConstraints(output, envMin, envMax, collisionAttenuation, environmentPadding);
 }
